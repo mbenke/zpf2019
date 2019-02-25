@@ -1,36 +1,36 @@
 ---
-title: Zaawansowane programowanie funkcyjne
+title: Advanced Functional Programming
 author:  Marcin Benke
-date: 27 lutego 2018
+date: Feb 27, 2019
 ---
 
 <meta name="duration" content="80" />
 
-# Plan wykładu
-* Typy i klasy
-    * Typy algebraiczne i klasy typów
-    * Klasy konstruktorowe
-    * Klasy wieloparametrowe, zależności funkcyjne
-* Testowanie (QuickCheck)
-* Typy zależne, Agda, Idris, Coq, dowodzenie własności (ok. 7 wykladów)
-* Typy zależne w Haskellu
-    * Rodziny typów, typy skojarzone, uogólnione typy algebraiczne   (GADT)
+# Course plan
+* Types and type classes
+    * Algebraic types and type classes
+    * Constructor classes
+    * Multiparameter classes, functional dependencies
+* Testing (QuickCheck)
+* Dependent types, Agda, Idris, Coq, proving properties (ca 7 weeks)
+* Dependent types in Haskell
+    * Type faimilies, associated tpyes, GADTs
     * data kinds, kind polymorphism
-* Metaprogramowanie
-* Programowanie równoległe i współbieżne w Haskellu
-    * Programowanie wielordzeniowe i wieloprocesorowe (SMP)
-    * Równoległość danych (Data Parallel Haskell)
-* Prezentacje projektów
+* Metaprogramming
+* Parallel and concurrent programming in Haskell
+    * Multicore and multiprocessor programming (SMP)
+    * Concurrency
+    * Data Parallel Haskell
+* Project presentations
 
-Jakieś życzenia?
+Any wishes?
 
-# Zasady zaliczania
-* Laboratorium: zdefiniowane zadanie Coq + **prosty** projekt 1-3 osobowy - Haskell
-* Egzamin ustny, którego istotną częścią jest prezentacja projektu.
-* Alternatywna forma zaliczenia: referat (koniecznie ciekawy!)
-* ...możliwe  także inne formy.
+# Passing the courseZasady zaliczania
+* Lab: fixed Coq project, student-defined simple Haskell project (group projects are encouraged)
+* Oral exam, most important part of which is project presentation
+* Alternative to Haskell project: presentation on interesting Haskell topics during the lecture (possibly plus lab)
 
-# Materiały
+# Materials
 
 ~~~~~
 $ cabal update
@@ -42,7 +42,7 @@ $ cd zpf2018/Slides
 $ make
 ~~~~~
 
-albo, przy użyciu stack - https://haskellstack.org/
+or using stack - https://haskellstack.org/
 
 ~~~~
 stack setup
@@ -51,7 +51,7 @@ export PATH=$(stack path --local-bin):$PATH
 ...
 ~~~~
 
-Na students można jak wyżej albo jeśli brakuje quota, z użyciem systemowego GHC:
+On students machine, using system GHC:
 
 ~~~~
 export PATH=/home/students/inf/PUBLIC/MRJP/ghc-8.2.2/bin:$PATH
@@ -67,11 +67,11 @@ export PATH=$($STACK path --local-bin):$PATH
 stack install pandoc
 ~~~~
 
-# Dygresja - cabal i stack
+# Digression - cabal and stack
 
 **Common Architecture for Building Applications and Libraries**
 
-`cabal install` -  pozwala instalować biblioteki na swoim koncie, bez uprawnień administratora
+`cabal install` -  lets you install libraries without root
 
 ```
 [ben@students Haskell]$ cabal update
@@ -87,7 +87,7 @@ Reading package info from "dist/installed-pkg-config"
 Writing new package config file... done.
 ```
 
-Wiele bibliotek na `http://hackage.haskell.org/`
+Many libraries on `http://hackage.haskell.org/`
 
 # Cabal hell
 
@@ -109,7 +109,8 @@ HTTP-4000.3.3
 Use --force-reinstalls if you want to install anyway.
 ```
 
-W nowszych wersjach cabal częściowo rozwiązane przez sandboxing i `cabal new-install`
+In newer cabal versions partially solved by sandboxing and `cabal new-install`
+
 # Stack + stackage
 
 > Stackage is a stable source of Haskell packages. We guarantee that packages build consistently and pass tests before generating nightly and Long Term Support (LTS) releases.
@@ -141,7 +142,7 @@ criterion-1.1.0.0: copy/register
 
 ```
 
-# Budowanie projektu
+# Building a project
 
 ```
 $ stack new hello --resolver lts-11.22 && cd hello
@@ -166,44 +167,46 @@ $ stack exec hello-exe
 someFunc
 ```
 
-# Stack - ćwiczenia
+# Stack - exercises
 
-1.  Na własnym komputerze
-    * Zainstalować `stack`
-    * Zainstalować GHC 7.10 przy pomocy `stack setup`
-    * Zainstalować GHC 8 przy pomocy `stack setup`
-    * Uruchomić `stack ghci` 7.10 i 8
-    * Zbudować i uruchomić projekt hello, trochę go zmodyfikować
+1.  On your own machine:
+    * Install `stack`
+    * Install GHC 7.10 przy pomocy `stack setup`
+    * Install GHC 8 przy pomocy `stack setup`
+    * Run `stack ghci` 7.10 i 8
+    * Zbudować i run projekt hello, trochę go zmodyfikować
 
-2. Na students
-    * Można zrobić to samo co powyżej, ale możliwy problem z quota
-    * `stack setup` przy użyciu GHC 8.2 (i może 7.10) z PUBLIC
+2. On students
+    * You can try the same, but quota problem possible
+    * `stack setup` withu GHC 8.2 (and maybe 7.10) from PUBLIC
     * `stack config set system-ghc --global true`
-    * Reszta jak wyżej
+    * Rest as above
 
-# Języki funkcyjne
-* typowane dynamicznie, gorliwe: Lisp
-* typowane statycznie, gorliwe, nieczyste: ML
-* typowane statycznie, leniwe, czyste: Haskell
+# Functional languages
+* dynamically typed, strict, impure: e.g. Lisp
+* statically typed, strict, impure: e.g. ML
+* staticaly typed, lazy, pure: e.g. Haskell
 
-Ten wykład: Haskell, ze szczególnym naciskiem na typy.
+This course: Haskell, focusing on types.
 
-Bogata struktura typów jest tym, co wyróżnia Haskell wśród innych języków.
+Rich type structure distinguishes Haskell among other languages.
 
-# Typy jako język specyfikacji
 
-Typ funkcji często specyfikuje nie tylko jej wejście i wyjście ale i relacje między nimi:
+# Types as a specification language
+
+A function type often specifies not only its input and output but also relationship between them:
+
 
 ~~~~ {.haskell}
 f :: forall a. a -> a
 f x = ?
 ~~~~
 
-Jeśli `(f x)` daje wynik, to musi nim być `x`
+If `f x` gives a result, it must be `x`
 
 * Philip Wadler "Theorems for Free"
 
-* Funkcja typu `a -> IO b` może mieć efekty uboczne
+* `h :: a -> IO b` constructs a computation with possible side effects
 
     ~~~~ {.haskell}
     import Data.IORef
@@ -222,11 +225,13 @@ Jeśli `(f x)` daje wynik, to musi nim być `x`
 
 
 
-# Typy jako język specyfikacji (2)
+# Types as a specification language (2)
 
-Funkcja typu `Integer -> Integer` zasadniczo nie może mieć efektów ubocznych
+`g :: Integer -> Integer` may not have side effects visible outside
 
-Liczby Fibonacciego w stałej pamięci
+It may have local side effects
+
+Example: Fibonacci numbers in constant memory
 
 ~~~~ {.haskell}
 import Control.Monad.ST
@@ -248,18 +253,18 @@ fibST n =
               fib3 (n-1) x y
 ~~~~
 
-Jak to?
+How come?
 
 ~~~~
 runST :: (forall s. ST s a) -> a
 ~~~~
 
-Typ `runST` gwarantuje, że efekty uboczne nie wyciekają. Funkcja `fibST`
-jest czysta.
+The type of `runST` guarantees that side effects do not leak;
+`fibST` is pure.
 
-# Typy jako język projektowania
+# Types as a design language
 
-* Projektowanie programu przy użyciu typów i `undefined`
+* Designing programs using types and `undefined`
 
     ~~~~ {.haskell}
     conquer :: [Foo] -> [Bar]
@@ -269,9 +274,11 @@ jest czysta.
     step = undefined
     ~~~~
 
-# Typy jako język programowania
+Newer Haskell version allow for typed holes.
 
-*    Funkcje na typach obliczane w czasie kompilacji
+# Types as a programming language
+
+* Functions on types computed at compile time
 
     ~~~~ {.haskell}
     data Zero
@@ -299,10 +306,11 @@ jest czysta.
     add three one :: Succ (Succ (Succ (Succ Zero)))
     ~~~~
 
-* Ćwiczenie: rozszerzyć o mnożenie i silnię
+**Exercise:** extend with multiplication and factorial
 
-# Typy jako język programowania (2)
-Wektory przy użyciu klas:
+# Types as a programming language (2)
+
+Vectors using type classes:
 
 ~~~~ {.haskell}
 data Vec :: * -> * -> * where
@@ -313,19 +321,19 @@ vhead :: Vec (Succ n) a -> a
 vhead (x :> xs) = x
 ~~~~
 
-**Ćwiczenie:** dopisać `vtail`, `vlast`
+**Exercise:** write `vtail`, `vlast`
 
-Chcielibyśmy również mieć
+We would like to have
 
 ~~~~ {.haskell}
 vappend :: Add m n s => Vec m a -> Vec n a -> Vec s a
 ~~~~
 
-ale tu niestety podstawowy system typów okazuje się za słaby - więcej wkrótce
+but here the base type system is too weak
 
-# Typy jako język programowania (3)
+# Types as a programming language (3)
 
-* Wektory przy użyciu rodzin typów:
+* Vectors with type families:
 
     ~~~~ {.haskell}
     data Zero = Zero
@@ -344,9 +352,9 @@ ale tu niestety podstawowy system typów okazuje się za słaby - więcej wkrót
     ~~~~
 
 
-# Typy zależne
+# Dependent types
 
-Prawdziwe programowanie na poziomie typów  i dowodzenie własności programów możliwe w języku z typami zależnymi, takim jak Agda, Epigram, Idris
+Real type-level programming and proving properties is possible in a language with dependent types, such as Agda or Idris:
 
 ~~~~
 module Data.Vec where
@@ -367,9 +375,9 @@ module UsingVectorEquality {s₁ s₂} (S : Setoid s₁ s₂) where
 ~~~~
 
 
-# Problem z typami zależnymi
+# A problem with dependent types
 
-O ile Haskell bywa czasami nieczytelny, to z typami zależnymi całkiem łatwo przesadzić:
+While Haskell is sometimes hard to read, dependent types are even easier to overdo:
 
 ~~~~
   now-or-never : Reflexive _∼_ →
@@ -390,11 +398,11 @@ O ile Haskell bywa czasami nieczytelny, to z typami zależnymi całkiem łatwo p
     helper (no  ≵now) = inj₂ $ ≳⇒ $ not-now-is-never x ≵now
 ~~~~
 
-...chociaż oczywiście pisanie takich dowodów jest świetną zabawą.
+...even though writing such proofs is fun.
 
 # Parallel Haskell
 
-Równoległe rozwiązywanie Sudoku
+Parallel Sudoku solver
 
 ~~~~ {.haskell}
 main = do
@@ -458,7 +466,6 @@ fib n = fib (n - 1) + fib (n - 2)
 
 # Data Parallel Haskell
 
-Dokąd chcemy dojść:
 
 ~~~~ {.haskell}
 {-# LANGUAGE ParallelArrays #-}
@@ -474,30 +481,29 @@ dotp_double :: [:Double:] -> [:Double:] -> Double
 dotp_double xs ys = D.sumP [:x * y | x <- xs | y <- ys:]
 ~~~~
 
-Wygląda jak operacja na listach, ale działa na tablicach i
-"automagicznie" zrównolegla się na dowolną liczbę rdzeni/procesorów
-(także CUDA).
+Looks like list operations, but works on vectors and "automagically"
+parallellises to any number of cores (also CUDA)
 
-Po drodze czeka nas jednak trochę pracy.
 
-# Typy w Haskellu
+# Types in Haskell
 
-* typy bazowe: `zeroInt :: Int`
-* typy funkcyjne: `plusInt :: Int -> Int -> Int`
-* typy polimorficzne `id :: a -> a`
+* base types: `zeroInt :: Int`
+* function types: `plusInt :: Int -> Int -> Int`
+* polymorphic types `id :: a -> a`
 
     ~~~~ {.haskell}
     {-# LANGUAGE ExplicitForAll #-}
     g :: forall b.b -> b
     ~~~~
 
-* typy algebraiczne
+* constrained types `0 :: Num a => a`
+* algebraic types
 
     ~~~~ {.haskell}
     data Tree a = Leaf | Node a (Tree a) (Tree a)
     ~~~~
 
-* `Leaf` i `Node` są konstruktorami wartości:
+* `Leaf`, `Node` are *value constructors
 
     ~~~~ {.haskell}
     data Tree a where
@@ -505,17 +511,17 @@ Po drodze czeka nas jednak trochę pracy.
          Node :: a -> Tree a -> Tree a -> Tree a
     ~~~~
 
-* `Tree` jest *konstruktorem typowym*, czyli operacją na typach
+* `Tree` is a *type constructor*, an operation on types
 
-* NB od niedawna Haskell dopuszcza puste typy:
+* NB empty types are allowed:
 
     ~~~~ {.haskell}
     data Zero
     ~~~~
 
-# Typowanie polimorficzne
+# Polymorphic typing
 
-* Generalizacja:
+* Generalisation:
 
 $${\Gamma \vdash e :: t, a \notin FV( \Gamma )}\over {\Gamma \vdash e :: \forall a.t}$$
 
@@ -530,23 +536,23 @@ $$\Gamma \vdash e :: t$$ ,
 to $\Gamma \vdash e :: \forall a.t$
 -->
 
-Na przykład
+For example
 
 $${ { \vdash map :: (a\to b) \to [a] \to [b] } \over
    { \vdash map :: \forall b. (a\to b) \to [a] \to [b] } } \over
    { \vdash map :: \forall a. \forall b. (a\to b) \to [a] \to [b] } $$
 
-Uwaga:
+Note:
 
 $$ f : a \to b \not \vdash map\; f :: \forall b. [a] \to [b]  $$
 
-* Instancjacja
+* Instantiation
 
 $$ {\Gamma \vdash e :: \forall a.t}\over {\Gamma \vdash e :: t[a:=s]} $$
 
-# Klasy
+# Classes
 
-* klasy opisują własności typów
+* Classes describe properties of types, e.g.
 
     ~~~~ {.haskell}
     class Eq a where
@@ -559,41 +565,41 @@ $$ {\Gamma \vdash e :: \forall a.t}\over {\Gamma \vdash e :: t[a:=s]} $$
     class Eq a => Ord a where ...
     ~~~~
 
-* funkcje mogą być definiowane w kontekście klas:
+* types can be cnstrained by class context:
 
     ~~~~ {.haskell}
     elem :: Eq a => a -> [a] -> Bool
     ~~~~
 
-+ Implementacja
-    - instancja tłumaczona na słownik metod (coś \'a la  vtable w C++)
-    - kontekst (np Eq a) jest tłumaczony na ukryty parametr (słownik metod )
-    - podklasa tłumaczona na funkcję
++ Implementaction
+    - an instance is translated to a method dictionary (akin to C++ vtable)
+    - contet is translated to an implicit parameter (method dictionary)
+    - a subclass is translated to a function on method dicts
 
 
-# Operacje na typach
+# Operations on types
 
-* Prosty przykład:
+* A simple example:
 
     ~~~~ {.haskell}
     data Tree a = Leaf | Node a (Tree a) (Tree a)
     ~~~~
 
-* Konstruktory typowe transformują typy
+* Type constructors transform types
 
-* `Tree` może zamienić np. `Int` w drzewo
+* e.g. `Tree` maps `Int` to `Tree Int`
 
-+ Funkcje wyższego rzędu transformują funkcje
++ Higher order functions transform functions
 
-+ Konstruktory wyższego rzędu transformują konstruktory typów
++ Higher order constructors transform type constructors, e.g.
 
 ~~~~ {.haskell}
 newtype IdentityT m a = IdentityT { runIdentityT :: m a }
 ~~~~
 
-# Klasy konstruktorowe
+# Constructor classes
 
-* klasy konstruktorowe opisują własności konstruktorów typów:
+* constructor classes describe properties of type constructors:
 
     ~~~~ {.haskell}
     class Functor f where
@@ -632,15 +638,15 @@ newtype IdentityT m a = IdentityT { runIdentityT :: m a }
 
 -->
 
-# Rodzaje (kinds)
+# Kinds
 
-* Operacje na wartościach są opisywane przez ich typy
+* Value operations are described by their types
 
-* Operacje na typach są opisywane przez ich rodzaje (kinds)
+* Type operations are described by their kinds
 
-* Typy (np. `Int`) są rodzaju `*`
+* Types (e.g.. `Int`, `Int -> Bool`) are of kind `*`
 
-* Jednoargumentowe konstruktory (np. `Tree`) są rodzaju `* -> *`
+* One argument constructors are of type  (e.g.. `Tree`) are of kind `* -> *`
 
     ~~~~ {.haskell}
     {-#LANGUAGE KindSignatures, ExplicitForAll #-}
@@ -649,18 +655,20 @@ newtype IdentityT m a = IdentityT { runIdentityT :: m a }
         pure :: forall (a :: *).a -> f a
     ~~~~
 
-* Występują też bardziej złożone rodzaje, np. dla transformatorów monad:
+* More complex kinds are possible, e.g. for monad transformers:
 
     ~~~~ {.haskell}
     class MonadTrans (t :: (* -> *) -> * -> *) where
         lift :: Monad (m :: * -> *) => forall (a :: *).m a -> t m a
     ~~~~
 
-NB spacje są niezbędne - `::*->*` jest jednym leksemem.
+NB spaces are obligatory - `::*->*` is one lexem
 
-# Klasy wieloparametrowe
+Newer Haskell versions allow introducing user kinds - we'll talk about them later.
 
-* Czasami potrzebujemy opisać nie tyle pojedynczy typ, co relacje między typami:
+# Multiparameter typeclasses
+
+* Sometimes we need to describe a relationship between types rather than just a single type:
 
     ~~~~ {.haskell}
     {-#LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
@@ -681,9 +689,9 @@ NB spacje są niezbędne - `::*->*` jest jednym leksemem.
      osi = map osi
     ~~~~
 
-* Uwaga: w ostatnim przykładzie `iso` ma inny typ po lewej, inny po prawej
+* NB: in the last example `iso` has a different type on the left than on the right.
 
-* Ćwiczenie: napisz jeszcze jakieś instancje klasy `Iso`
+* Exercise: write more instances of `Iso`, e.g.
 
 
     ~~~~ {.haskell}
@@ -691,7 +699,7 @@ NB spacje są niezbędne - `::*->*` jest jednym leksemem.
     instance Iso (a->b->c) (b->a->c) where
     ~~~~
 
-# Dygresja - FlexibleInstances
+# Digression - FlexibleInstances
 
 Haskell 2010
 
@@ -717,10 +725,11 @@ This prohibits instance declarations such as:
   instance C (Int,a) where ...
   instance C [[a]] where ...
 
-`instance Iso a a` nie spełnia tych warunków, ale wiadomo o jaką relację nam chodzi :)
+`instance Iso a a` does not meet these conditions, but it's easy to see  what relation we mean.
 
-# Problem z klasami wieloparametrowymi
-Spróbujmy stworzyć klasę kolekcji, np.
+# Problem with muliparameter type classes
+
+Consider a class of collections, e.g.
 
 `BadCollection.hs`
 
@@ -744,9 +753,9 @@ instance Collection [a] where
           at BadCollection.hs:5:22
 ~~~~
 
-Dlaczego?
+Why?
 
-# Problem z klasami wieloparametrowymi
+# Problem with muliparameter type classes
 
 ~~~~ {.haskell}
 class Collection c where
@@ -754,7 +763,7 @@ class Collection c where
  member :: e -> c -> Bool
 ~~~~
 
-tłumaczy się (mniej więcej) do
+translates more or less to
 
 ~~~~
 data ColDic c = CD
@@ -764,7 +773,7 @@ data ColDic c = CD
  }
 ~~~~
 
- ... nie o to nam chodziło.
+ ... this is not what we meant
 
 ~~~~ {.haskell}
 instance Collection [a] where
@@ -778,7 +787,7 @@ ColList :: forall a. ColDic a
 ColList = \@ a -> CD { insert = (:) @ a, member =
 ~~~~
 
-# Problem z klasami wieloparametrowymi
+# Problem with muliparameter type classes
 
  <!--- `BadCollection2.hs` -->
 <!---
@@ -788,12 +797,15 @@ ColList = \@ a -> CD { insert = (:) @ a, member =
 
 ~~~~ {.haskell}
 class Collection c e where
+  empty :: c
   insert :: e -> c -> c
   member :: e -> c -> Bool
 
 instance Eq a => Collection [a] a where
+  empty = []
   insert  = (:)
   member = elem
+
 
 ins2 x y c = insert y (insert x c)
 -- ins2 :: (Collection c e, Collection c e1) => e1 -> e -> c -> c
@@ -809,12 +821,13 @@ problem2 = ins2 'a' 'b' []
 
 problem3 :: (Collection c0 Char, Collection c0 Bool) => c0 -> c0
 problem3 = ins2 True 'a'
--- Tu problem akurat polega na tym, że to jest poprawne typowo
--- ...a chyba nie powinno być
+-- Here the problem is that this is type correct, but shouldn't
 ~~~~
 
-# Zależności funkcyjne
-Czasami w klasach wieloparametrowych, jeden parametr wyznacza inny, np.
+Exercise: verify that `Collects` solves the problem we had with `Collection`
+
+# Functional dependencies
+Sometimes in multiparameter typeclasses, one parameter determines another, e.g.
 
 ~~~~ {.haskell}
  class (Monad m) => MonadState s m | m -> s where ...
@@ -827,11 +840,11 @@ Czasami w klasach wieloparametrowych, jeden parametr wyznacza inny, np.
 
 Problem: *Fundeps are very, very tricky.* - SPJ
 
-Więcej: http://research.microsoft.com/en-us/um/people/simonpj/papers/fd-chr/
+More: http://research.microsoft.com/en-us/um/people/simonpj/papers/fd-chr/
 
-# Refleksja - czemu nie klasy konstruktorowe?
+# Reflection - why not constructor classes?
 
-Problem kolekcji możemy rozwiązać np. tak:
+We could try to solve the problem this way:
 
 ~~~~ {.haskell}
 class Collection c where
@@ -843,7 +856,7 @@ instance Collection [] where
      member = elem
 ~~~~
 
-ale nie rozwiązuje to problemu np. z monadą stanu:
+but this does not allow to solve the problem with the state monad:
 
 ~~~~ {.haskell}
  class (Monad m) => MonadState s m | m -> s where
@@ -851,7 +864,7 @@ ale nie rozwiązuje to problemu np. z monadą stanu:
    put :: s -> m ()
 ~~~~
 
-typ stanu `s` nie jest tu parametrem konstruktora `m`.
+the state type `s` is not a parameter of `m`
 
 # Fundeps are very very tricky
 
@@ -869,22 +882,23 @@ instance Mul a b c => Mul a (Vec b) (Vec c) where
 f t x y = if t then  x * (Vec [y]) else y
 ~~~~
 
-Jakiego typu jest f? Niech x::a, y::b.
+What is the type of `f`? Let `x::a`, `y::b`.
 
-Wtedy typem wyniku jest b i musimy mieć instancję `Mul a (Vec b) b`
+Then the result type of `f` is `b` and we need an instance of `Mul a (Vec b) b`
 
-Z kolei `a b -> c` implikuje, że `b = Vec c` dla pewnego c, czyli szukamy instancji
+Now
+Z kolei `a b -> c` implies `b ~ Vec c` for some `c`, so we are lookng for an instance
 
 ~~~~
 Mul a (Vec (Vec c)) (Vec c)
 ~~~~
 
-zastosowanie reguły `Mul a b c => Mul a (Vec b) (Vec c)` doprowadzi nas do `Mul a (Vec c) c`.
+applying the rule `Mul a b c => Mul a (Vec b) (Vec c)` leads to `Mul a (Vec c) c`.
 
-...i tak w kółko.
+...and so on
 
 
-# Spróbujmy
+# Let's try
 
 ~~~~ {.haskell}
 Mul1.hs:16:21:
@@ -908,11 +922,11 @@ Mul1.hs:16:21:
     In the expression: if b then mul x (Vec [y]) else y
 ~~~~
 
-(musimy użyć UndecidableInstances, żeby GHC w ogóle spróbowało - ten przykład pokazuje co jest 'Undecidable').
+(we need to use UndecidableInstances, to make GHC try - this example shows what is 'Undecidable').
 
-# Rodziny typów
+# Type families
 
-Rodziny to funkcje na typach - jak na pierwszym wykładzie
+Type families are functions on types
 
 ~~~~ {.haskell}
 {-# TypeFamilies #-}
@@ -928,4 +942,4 @@ vhead :: Vec (Suc n) a -> a
 vappend :: Vec m a -> Vec n a -> Vec (m:+n) a
 ~~~~
 
-Trochę dalej powiemy sobie o nich bardziej systematycznie.
+We'll talk about them systematically when we talk about dependent types in Haskell
