@@ -1,0 +1,44 @@
+## Materiały do wykładu "Zaawansowane Programowanie Funkcyjne" Wydział MIM UW 2018/19
+
+## "Advanced Functional Programming" course materials  (in Polish)
+
+* Gotowe notatki/slajdy w katalogu www
+* Kod w katalogu Code
+* Do wygenerowania notatek i slajdów ze źródeł potrzebny program pandoc
+
+### Szybki start
+
+~~~~~
+$ cabal update
+$ cabal install pandoc
+$ PATH=~/.cabal/bin:$PATH            # Linux
+$ PATH=~/Library/Haskell/bin:$PATH   # OS X
+$ git clone git://github.com/mbenke/zpf2019.git
+$ cd zpf2019/Slides
+$ make
+~~~~~
+
+albo, przy użyciu stack
+
+~~~~
+stack setup
+stack install pandoc
+export PATH=$(stack path --local-bin):$PATH
+...
+~~~~
+
+Na students można jak wyżej albo jeśli brakuje quota, z uzyciem systemowego GHC:
+
+~~~~
+export PATH=/home/students/inf/PUBLIC/MRJP/ghc-8.2.2/bin:$PATH
+export STACK="/home/students/inf/PUBLIC/MRJP/Stack/stack --system-ghc --resolver ghc-8.2"
+$STACK setup
+$STACK config set system-ghc true
+$STACK  upgrade --force-download  # or cp stack executable to your path
+#  ...
+#  Should I try to perform the file copy using sudo? This may fail
+#  Try using sudo? (y/n) n
+
+export PATH=$($STACK path --local-bin):$PATH
+stack install pandoc
+~~~~
