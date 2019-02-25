@@ -1,12 +1,11 @@
 ## Materiały do wykładu "Zaawansowane Programowanie Funkcyjne" Wydział MIM UW 2018/19
 
-## "Advanced Functional Programming" course materials  (in Polish)
+## "Advanced Functional Programming" course materials, MIMUW 2018/2019
 
-* Gotowe notatki/slajdy w katalogu www
-* Kod w katalogu Code
-* Do wygenerowania notatek i slajdów ze źródeł potrzebny program pandoc
+* Generated Lecture notes in the www subdir, source in Slides
+* Generating lecture notes and slides needs pandoc
 
-### Szybki start
+### Quick start
 
 ~~~~~
 $ cabal update
@@ -18,7 +17,7 @@ $ cd zpf2019/Slides
 $ make
 ~~~~~
 
-albo, przy użyciu stack - https://haskellstack.org/
+or using stack - https://haskellstack.org/
 
 ~~~~
 stack setup
@@ -27,7 +26,7 @@ export PATH=$(stack path --local-bin):$PATH
 ...
 ~~~~
 
-Na students można jak wyżej albo jeśli brakuje quota, z użyciem systemowego GHC:
+On students, you can try using system GHC:
 
 ~~~~
 export PATH=/home/students/inf/PUBLIC/MRJP/ghc-8.2.2/bin:$PATH
