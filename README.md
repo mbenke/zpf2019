@@ -18,7 +18,7 @@ $ cd zpf2019/Slides
 $ make
 ~~~~~
 
-albo, przy użyciu stack
+albo, przy użyciu stack - https://haskellstack.org/
 
 ~~~~
 stack setup
@@ -27,7 +27,7 @@ export PATH=$(stack path --local-bin):$PATH
 ...
 ~~~~
 
-Na students można jak wyżej albo jeśli brakuje quota, z uzyciem systemowego GHC:
+Na students można jak wyżej albo jeśli brakuje quota, z użyciem systemowego GHC:
 
 ~~~~
 export PATH=/home/students/inf/PUBLIC/MRJP/ghc-8.2.2/bin:$PATH
