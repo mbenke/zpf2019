@@ -25,7 +25,7 @@ date: Feb 27, 2019
 
 Any wishes?
 
-# Passing the courseZasady zaliczania
+# Passing the course (Zasady zaliczania)
 * Lab: fixed Coq project, student-defined simple Haskell project (group projects are encouraged)
 * Oral exam, most important part of which is project presentation
 * Alternative to Haskell project: presentation on interesting Haskell topics during the lecture (possibly plus lab)
