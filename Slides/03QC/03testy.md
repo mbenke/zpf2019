@@ -1,12 +1,12 @@
 ---
-title: Zaawansowane programowanie funkcyjne
+title: Advanced Functional Programming
 author:  Marcin Benke
-date: 12 marca 2019
+date: Mar 12, 2019
 ---
 
 <meta name="duration" content="80" />
 
-# Testowanie programów w Haskellu
+# Testing Haskell Programs
 * doctest [github: sol/doctest](https://github.com/sol/doctest)
 * HUnit
 * Quickcheck
@@ -15,7 +15,8 @@ date: 12 marca 2019
 
 # doctest
 
-Przykłady w dokumetacji mogą służyć za testy regresji
+Examples in the docs can be used as regression tests
+
 
 ``` {.haskell }
 module DoctestExamples where
@@ -38,7 +39,7 @@ expected: 5
 Examples: 2  Tried: 2  Errors: 0  Failures: 1
 ```
 
-# Przykład z BNFC
+# An Example from BNFC
 ``` {.haskell}
 -- | Generate a name in the given case style taking into account the reserved
 -- word of the language.
@@ -54,11 +55,11 @@ mkName :: [String] -> NameStyle -> String -> String
 mkName reserved style s = ...
 ```
 
-# Dygresja - Haddock
+# Digression - Haddock
 
-Haddock (<http://haskell.org/haddock>) jest standardowym narzedziem do dokuentowania kodu w Haskellu
+Haddock (<http://haskell.org/haddock>) is a commonly used Haskell documentation tool.
 
-Sekwencja "`-- |`" (spacja jest istotna) rozpoczyna blok komentarzy, który trafia do dokumentacji
+The sequence `{-|`  or `-- |` (space is important) starts a comment block, which is passed to documentation
 
 ``` haskell
 -- |The 'square' function squares an integer.
@@ -67,11 +68,13 @@ square :: Int -> Int
 square x = x * x
 ```
 
+```
+$ haddock --html Square.hs
+```
 # HUnit
+Unit tests are a common practice in many languages
 
-W większości języków powszechną praktyką jest stosowanie testów jednostkowych.
-
-Mozna to robić i w Haskellu., np.
+We can do that in Haskell as well, e.g.:
 
 ~~~~ {.haskell}
 import Test.HUnit
@@ -87,7 +90,7 @@ test2 = TestCase$assertEqual "elems . array = id"
                              (elems $ listArray1 [1..3]) [1..3]
 ~~~~
 
-albo
+or
 
 ~~~~ {.haskell}
 import Test.HUnit
@@ -111,7 +114,7 @@ Counts {cases = 2, tried = 2, errors = 0, failures = 0}
 runTestTT :: Test -> IO Counts
 ~~~~
 
-# Posortujmy listę
+# Let's sort a list
 
 ~~~~ {.haskell}
 mergeSort :: (a -> a -> Bool) -> [a] -> [a]
@@ -130,9 +133,9 @@ mergeSort pred = go
 ~~~~
 
 
-# Funkcja split
+# The `split` function
 
-...tworzy dwie podlisty podobnej długości, które będzie można po posortowaniu złączyć
+...createstwo sublists of similar length, which can be merged after sorting them
 
 ~~~~ {.haskell}
 split :: [a] -> ([a],[a])
@@ -143,7 +146,7 @@ split (x:y:zs) = (x:xs,y:ys)
 ~~~~
 
 
-# Sortowanie: testy jednostkowe
+# Sorting: unit tests
 
 
 ~~~~
@@ -155,37 +158,37 @@ sort [1,4,2,3] == [1,2,3,4]
 ...
 ~~~~
 
-To się robi trochę nudne...
+It starts getting boring...
 
-...ale dzięki typom, można lepiej.
+...but, thanks to types, we can do better
 
-# Własności
+# Properties
 
-oczywista własność sortowania:
+An obvious sorting property:
 
 ~~~~ {.haskell}
 prop_idempotent = sort . sort == sort
 ~~~~
 
-nie jest definiowalna; nie możemy porównywać funkcji.
+is not definable; we cannot compare functions.
 
-Możemy "oszukać":
+We can "cheat":
 
 ~~~~ {.haskell}
 prop_idempotent xs =
     sort (sort xs) == sort xs
 ~~~~
 
-Spróbujmy w interpreterze:
+Let's try it in REPL:
 
 ~~~~
 *Main> prop_idempotent [3,2,1]
 True
 ~~~~
 
-# Próba mechanizacji
+# An automation attempt
 
-Możemy to próbować zmechanizować:
+We can try to automate it:
 
 ~~~~
 prop_permute :: ([a] -> Bool) -> [a] -> Bool
@@ -203,11 +206,11 @@ True
 
 # QuickCheck
 
-* Generowanie dużej ilości testów jednostkowych jest żmudne
+* Generating many unit tests is boring
 
-* Sprawdzenie wszystkich możliwości jest nierealistyczne
+* Checking all possibilities is not realistic
 
-* Pomysł: wygenerować odpowiednią losową próbkę danych
+* Idea: generate an appropriate random sample of the data
 
 ~~~~
 *Main> import Test.QuickCheck
@@ -215,25 +218,26 @@ True
 +++ OK, passed 100 tests.
 ~~~~
 
-QuickCheck wylosował 100 list i sprawdził własność,
 
-Możemy zażyczyć sobie np. 1000:
+QuickCheck generated 100 random lists and checked the property
+
+Of course we can wish for 1000 instead of 100:
 
 ~~~~
 *Main Test.QuickCheck> quickCheckWith stdArgs {maxSuccess = 1000}  prop_idempotent
 +++ OK, passed 1000 tests.
 ~~~~
 
-Uwaga: nie możemy losować  wartości polimorficznych, dlatego `prop_idempotent` monomorficzne.
+NB: we cannot generate random "polymorphic values", hence `prop_idempotent` is monomorphic.
 
-**Ćwiczenie:** napisz i uruchom kilka testów dla sortowania i kilka
-  testów dla własnych funkcji.
+**Exercise:** write and run a few tests for sorting and your own functions.
 
-# Jak to działa?
+# How does it work?
 
-Dla uproszczenia najpierw przyjrzyjmy się starszej wersji
+For simplicity, let's look at QC v1
 
-Główne składniki
+
+Main ingredients:
 
 ~~~~ {.haskell}
 quickCheck  :: Testable a => a -> IO ()
@@ -257,7 +261,7 @@ class Arbitrary a where
 instance Monad Gen where ...
 ~~~~
 
-# Generacja liczb losowych
+# Random number generation
 
 ~~~~ {.haskell}
 import System.Random
@@ -290,8 +294,7 @@ main = do
 ~~~~
 
 
-# Generatory losowych obiektów
-
+# Random object generation
 
 ~~~~ {.haskell}
 choose :: (Int,Int) -> Gen Int
@@ -310,11 +313,11 @@ instance Arbitrary a => Arbitrary [a] where
 generate :: Gen a -> IO a
 ~~~~
 
-Jaka jest oczekiwana długość wylosowanej listy?
+What is the expected value of the length of a random list generated this way?
 
 $$ \sum_{n=0}^\infty {n\over 2^{n+1}} = 1 $$
 
-# Dopasowanie rozkładu
+# Adjusting distribution:
 
 ~~~~ {.haskell}
 frequency :: [(Int, Gen a)] -> Gen a
@@ -335,7 +338,7 @@ threetrees :: Gen [Tree Int]
 threetrees = sequence [arbitrary, arbitrary, arbitrary]
 ~~~~
 
-jakie jest prawdopodobieństwo że generowanie 3 drzew się zatrzyma?
+what is the probability that generating 3 trees ever stops?
 
 <!---
 
@@ -347,25 +350,25 @@ $$ p = 1/2 $$
 
 -->
 
-# Ograniczanie rozmiaru
+# Limiting size
 
 ~~~~ {.haskell}
--- generator bierze pożądany rozmiar i StdGen i daje a
+-- A generator given the desired size and an StdGen yields an a
 newtype Gen a = Gen (Int -> StdGen -> a)
 
 chooseInt1 :: (Int,Int) -> Gen Int
 chooseInt1 bounds = Gen $ \n r  -> fst (randomR bounds r)
 
--- | `sized` tworzy generator z rodziny generatorów indeksowanej rozmiarem
+-- | `sized` builds a generator from a size-indexed generator family
 sized :: (Int -> Gen a) -> Gen a
 sized fgen = Gen (\n r -> let Gen m = fgen n in m n r)
 
--- | `resize` tworzy generator stałego rozmiaru
+-- | `resize` builds a constant size generator
 resize :: Int -> Gen a -> Gen a
 resize n (Gen m) = Gen (\_ r -> m n r)
 ~~~~
 
-# Lepsze Arbitrary dla Tree
+# Better `Arbitrary` for `Tree`
 
 ~~~~ {.haskell}
 instance Arbitrary a => Arbitrary (Tree a) where
@@ -378,10 +381,10 @@ arbTree n = frequency
         ]
 ~~~~
 
-# Monada generatorów
+# A monad of generators
 
 ~~~~ {.haskell}
--- Trochę jak monada stanu, tylko musimy rozdzielić "stan" na dwa
+-- Resembles the state monad, but the state gets split in two
 instance Monad Gen where
   return a = Gen $ \n r -> a
   Gen m >>= k = Gen $ \n r0 ->
@@ -427,13 +430,13 @@ instance Arbitrary Int where
   arbitrary     = sized $ \n -> choose (-n,n)
 ~~~~
 
-# Result - wynik testu
+# Result of a test
 
-Test może dać trojaki wynik:
+A test can have one of three outcomes:
 
-* Just True - sukces
-* Just False - porażka  (plus kontrprzykład)
-* Nothing - dane nie nadawały się do testu
+* Just True - success
+* Just False - failure  (plus counterexample)
+* Nothing - data not fitting for the test
 
 ~~~~ {.haskell}
 data Result = Result { ok :: Maybe Bool, arguments :: [String] }
@@ -445,11 +448,11 @@ newtype Property
   = Prop (Gen Result)
 ~~~~
 
-Własność (`Property`),  to obliczenie w monadzie `Gen` dające `Result`
+`Property`,  is a computation in the `Gen` onad, yielding `Result`
 
 # Testable
 
-Aby coś przetestować musimy mieć dla tego generator wyników:
+To test something, we need a `Result` generator
 
 ~~~~ {.haskell}
 class Testable a where
@@ -475,7 +478,7 @@ OK, passed 100 tests
 Falsifiable, after 0 tests:
 ~~~~
 
-# Uruchamianie testów
+# Running tests
 
 ~~~~ {.haskell}
 generate :: Int -> StdGen -> Gen a -> a
@@ -505,7 +508,7 @@ tests gen rnd0 ntest nfail
 # forAll
 
 ~~~~ {.haskell}
--- | `evaluate` oblicza generator z instancji Testable
+-- | `evaluate` extracts a generator from the `Testable` instance
 evaluate :: Testable a => a -> Gen Result
 evaluate a = gen where Prop gen = property a
 
@@ -532,9 +535,9 @@ Falsifiable, after 0 tests:
 -22
 ~~~~
 
-# Funkcje i implikacja
+# Functions and implication
 
-Mając `forAll`, funkcje są zaskakująco łatwe:
+Given `forAll`, functions are surprisingly easy:
 
 ~~~~ {.haskell}
 instance (Arbitrary a, Show a, Testable b) => Testable (a -> b) where
@@ -544,12 +547,12 @@ propAddCom3 :: Int -> Int -> Bool
 propAddCom3 x y = x + y == y + x
 ~~~~
 
-Jeszcze implikacja: jeśli p to q
+Implication: test q, providing data satisfies p
 
 ~~~~ {.haskell}
 (==>) :: Testable a => Bool -> a -> Property
 True  ==> a = property a
-False ==> a = property () -- nieadekwatne dane
+False ==> a = property () -- bad trst data
 
 propMul1 :: Int -> Property
 propMul1 x = (x>0) ==> (2*x > 0)
@@ -569,58 +572,60 @@ Falsifiable, after 0 tests:
 ~~~~
 
 
-# Generowanie funkcji
+# Generating functions
 
-Potrafimy testować funkcje, ale czy potrafimy wygenerować losową funkcję?
+We can test functions, but to test higher-order functons we need to generate random functions.
 
-Zauważmy, że
+
+Note that
 
 ~~~~ {.haskell}
 Gen a ~ (Int -> StdGen -> a)
 Gen(a -> b) ~ (Int -> StdGen -> a -> b) ~ (a -> Gen b)
 ~~~~
 
-możemy więc napisać funkcję
+so we can write
 
 ~~~~ {.haskell}
 promote :: (a -> Gen b) -> Gen (a -> b)
 promote f = Gen (\n r -> \a -> let Gen m = f a in m n r)
 ~~~~
 
-Możemy uzyć `promote` do skonstruowania generatora dla funkcji, jeśli tylko potrafimy skonstruować generator dla wyników zależący jakoś od argumentów.
+We can use `promote` to construct a function generator if we can create a generator for results depending somehow on arguments
 
 # Coarbitrary
 
-Możemy to opisać klasą:
+We can describe this with a class:
 
 ~~~~ {.haskell}
 class CoArbitrary a where
   coarbitrary :: a -> Gen b -> Gen b
 ~~~~
 
-Na podstawie wartości argumentu, `coarbitrary` tworzy transformator generatorów.
+`coarbitrary` produces a generator transformer from its argument
 
-Teraz możemy użyć `Coarbitrary` by stworzyć `Arbitrary` dla funkcji:
+Now we can use `Coarbitrary` to define `Arbitrary` instance for functions:
 
 ~~~~ {.haskell}
 instance (CoArbitrary a, Arbitrary b) => Arbitrary(a->b) where
   arbitrary = promote $ \a -> coarbitrary a arbitrary
 ~~~~
 
-NB w rzeczywistości w QuickChecku `coarbitrary` jest metodą klasy `Arbitrary`.
+NB in newer versions of QuickCheck `coarbitrary` is a method of `Arbitrary`.
 
-**Ćwiczenie:** napisz kilka instancji `Arbitrary` dla swoich typów. Możesz zacząć od `coarbitrary = undefined`
+**Exercise:** write a few instances of `Arbitrary` for your types.
+You may start with `coarbitrary = undefined`
 
-# Instancje CoArbitrary
+# CoArbitrary instances
 
-Żeby definiować instancje CoArbitrary
+To define CoArbitrary instances
 
 ~~~~ {.haskell}
 class CoArbitrary where
   coarbitrary :: a -> Gen b -> Gen b
 ~~~~
 
-musimy umieć pisać transformatory generatorów. Zdefiniujmy funkcję
+we need a way to construct generator transformers. Let us define the function
 
 ~~~~ {.haskell}
 variant :: Int -> Gen a -> Gen a
@@ -629,8 +634,8 @@ variant v (Gen m) = Gen (\n r -> m n (rands r !! (v+1)))
   rands r0 = r1 : rands r2 where (r1, r2) = split r0
 ~~~~
 
-która rozdziela generator liczb losowych na odpowiednią ilość i
-wybiera jeden z nich zależnie od wartości argumentu.
+which splits the input generator int many variants and chooses one of them
+depending on the argument
 
 ~~~~ {.haskell}
 instance CoArbitrary Bool where
@@ -638,7 +643,7 @@ instance CoArbitrary Bool where
   coarbitrary True  = variant 1
 ~~~~
 
-# Własności funkcji
+# Function properties
 
 ~~~~ {.haskell}
 infix 4 ===
@@ -651,7 +656,7 @@ propCompAssoc f g h = (f . g) . h === f . (g . h)
   where types = [f,g,h::Int->Int]
 ~~~~
 
-# Problem z implikacją
+# A problem with the implication
 
 ~~~~
 prop_insert1 x xs = ordered (insert x xs)
@@ -662,7 +667,7 @@ prop_insert1 x xs = ordered (insert x xs)
 [0,-1]
 ~~~~
 
-...oczywiście...
+...obviously...
 
 ~~~~
 prop_insert2 x xs = ordered xs ==> ordered (insert x xs)
@@ -671,7 +676,7 @@ prop_insert2 x xs = ordered xs ==> ordered (insert x xs)
 *** Gave up! Passed only 43 tests.
 ~~~~
 
-Prawdopodobieństwo, że losowa lista jest posortowana jest niewielkie :)
+Probability that a random list is ordered is small...
 
 ~~~~
 prop_insert3 x xs = collect (length xs) $  ordered xs ==> ordered (insert x xs)
@@ -683,11 +688,11 @@ prop_insert3 x xs = collect (length xs) $  ordered xs ==> ordered (insert x xs)
 16% 2
 ~~~~
 
-...a i te posortowane są mało przydatne.
+...and those which are, are usually not very useful
 
-# Czasami trzeba napisać własny generator
+# Sometimes you need to write your ow generator
 
-* Trzeba zdefiniować nowy typ (chyba, że już mamy)
+* Define a new type
 
 ~~~~
 newtype OrderedInts = OrderedInts [Int]
@@ -738,13 +743,14 @@ Using resolver: lts-9.21 from implicit global project's config file: /Users/ben/
 Examples: 5  Tried: 5  Errors: 0  Failures: 0
 ```
 
-# Uruchamianie wszystkich testów w module
+# Running all tests in a module
 
-Funkcja `quickCheckAll` pozwala na przetestowanie wszystkich własności o nazwach zaczynających się od `prop_`. Wykorzystuje do tego TemplateHaskell.
+`quickCheckAll` tests all properties with names starting with `prop_` (and proper type).
+It uses TemplateHaskell.
 
-Na kolejnym wykładzie dowiemy się jak działają takie funkcje.
+The next lecture will discuss how such functions work.
 
-Przykład użycia
+Usage example
 
 ``` haskell
 {-# LANGUAGE TemplateHaskell #-}
@@ -756,7 +762,7 @@ prop_AddCom3 x y = x + y == y + x
 prop_Mul1 :: Int -> Property
 prop_Mul1 x = (x>0) ==> (2*x > 0)
 
-return []
+return []  -- tells TH to typechieck definitions above and insert an empty decl list
 runTests = $quickCheckAll
 
 main = runTests
