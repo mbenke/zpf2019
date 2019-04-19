@@ -1,0 +1,699 @@
+---
+title: Advanced Functional Programming
+subtitle: Template Haskell
+author:  Marcin Benke
+date: May 14, 2019
+---
+
+# Metaprogramming - Template Haskell
+
+Interactive tutorials on  [School of Haskell](https://www.schoolofhaskell.com/) (SoH is being migrated and interactive features do not work currnetly)
+
+* [Template Haskell](https://www.schoolofhaskell.com/user/marcin/template-haskell-101)
+
+* Code/TH/Here
+
+* Code/TH/Projections
+
+* [Quasiquotation](https://www.fpcomplete.com/user/marcin/quasiquotation-101)
+
+* Code/TH/QQ
+
+# Problem: multiline strings
+
+
+``` {.haskell}
+showClass :: [Method] -> String
+showClass ms = "\
+\.class  public Instant\n\
+\.super  java/lang/Object\n\
+\\n\
+\;\n\
+\; standard initializer\n\
+\.method public <init>()V\n\
+\   aload_0\n\
+\   invokespecial java/lang/Object/<init>()V\n\
+\   return\n\
+\.end method\n" ++ unlines (map showMethod ms)
+```
+
+# Template Haskell
+
+Multiline strings in Haskell according to Haskell Wiki:
+
+```
+{-# LANGUAGE QuasiQuotes #-}
+module Main where
+import Str
+
+longString = [str|This is a multiline string.
+It contains embedded newlines. And Unicode:
+
+Ἐν ἀρχῇ ἦν ὁ Λόγος
+
+It ends here: |]
+
+main = putStrLn longString
+
+```
+
+``` {.haskell}
+module Str(str) where
+
+import Language.Haskell.TH
+import Language.Haskell.TH.Quote
+
+str = QuasiQuoter { quoteExp = stringE }
+```
+
+LEt's try to understand how it works...
+
+# Parsing Haskell code at runtime
+
+Quotations - `[f| ... |]` are a mechanism for generating ASTs.
+The function `f` determines how the bracket content is parsed
+(default is Haskell expressions).
+
+This [tutorial](https://web.archive.org/web/20180501004533/http://www.hyperedsoftware.com:80/blog/entries/first-stab-th.html)
+recommends experimenting in GHCi:
+
+```
+$ ghci -XTemplateHaskell
+> :m +Language.Haskell.TH
+> runQ [| \x -> 1 |]
+
+LamE [VarP x_0] (LitE (IntegerL 1))
+
+> :t it
+it :: Exp
+
+> :i Exp
+data Exp
+  = VarE Name
+  | ConE Name
+  | LitE Lit
+...
+  	-- Defined in ‘Language.Haskell.TH.Syntax’
+
+> runQ [| \x -> x + 1 |]  >>= putStrLn . pprint
+\x_0 -> x_0 GHC.Num.+ 1
+```
+
+# Q, runQ
+
+```
+> :t [| \x -> 1 |]
+[| \x -> 1 |] :: ExpQ
+> :i ExpQ
+type ExpQ = Q Exp 	-- Defined in ‘Language.Haskell.TH.Lib’
+
+> :i Q
+newtype Q a = ... -- Defined in ‘Language.Haskell.TH.Syntax’
+instance Monad Q
+instance Functor Q
+
+> :t runQ
+runQ :: Language.Haskell.TH.Syntax.Quasi m => Q a -> m a
+
+>: i Quasi
+class MonadFail m => Quasi (m :: * -> *) where ...
+instance Quasi Q
+instance Quasi IO
+```
+
+# Splicing structure trees into a program
+
+```
+> runQ [| succ 1 |]
+AppE (VarE GHC.Enum.succ) (LitE (IntegerL 1))
+Prelude Language.Haskell.TH> $(return it)
+2
+
+> $(return (LitE (IntegerL 42)))
+42
+
+```
+
+but:
+```
+> $(return (AppE (VarE GHC.Enum.succ) (LitE (IntegerL 1))))
+
+<interactive>: error:
+    Couldn't match expected type ‘Name’ with actual type ‘a0 -> a0’
+    Probable cause: ‘succ’ is applied to too few arguments
+    In the first argument of ‘VarE’, namely ‘succ’
+    In the first argument of ‘AppE’, namely ‘(VarE succ)’
+Prelude Language.Haskell.TH> $(return (AppE (VarE "GHC.Enum.succ") (LitE (IntegerL 1))))
+<interactive>: error:
+    • Couldn't match expected type ‘Name’ with actual type ‘[Char]’
+> :t VarE
+VarE :: Name -> Exp
+```
+
+
+# Names, patterns, declarations
+
+```
+> :t mkName
+mkName :: String -> Name
+
+> $( return (AppE (VarE (mkName "succ")) (LitE (IntegerL 1))))
+2
+
+```
+
+So far, we have been building expressions, but we can build patterns, declarations, etc.:
+
+```
+> runQ [d| p1 (a,b) = a |]
+[FunD p1_0 [Clause [TupP [VarP a_1,VarP b_2]] (NormalB (VarE a_1)) []]]
+```
+
+`FunD` etc - see  [documentation](https://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH.html#g:18).
+
+``` {.haskell}
+data Clause = Clause [Pat] Body [Dec]
+data Dec
+  = FunD Name [Clause]            --  f p1 p2 = b where decs
+  ...
+```
+
+Let us now try to build such a definition ourselves.
+
+Note that we need to use two modules, since definitions to be run during compilation have to be imported from a different module.
+
+# Build1
+
+
+``` {.haskell}
+{-# START_FILE Build1.hs #-}
+{-# LANGUAGE TemplateHaskell #-}
+module Build1 where
+import Language.Haskell.TH
+
+-- p1 (a,b) = a
+build_p1 :: Q [Dec]
+build_p1 = return
+    [ FunD p1
+             [ Clause [TupP [VarP a,VarP b]] (NormalB (VarE a)) []
+             ]
+    ] where
+       p1 = mkName "p1"
+       a = mkName "a"
+       b = mkName "b"
+
+{-# START_FILE Declare1.hs #-}
+{-# LANGUAGE TemplateHaskell #-}
+import Language.Haskell.TH
+import Build1
+
+$(build_p1)
+
+main = print $ p1 (1,2)
+```
+
+
+# Printing the declarations we built
+
+``` {.haskell}
+import Build1
+
+$(build_p1)
+
+pprLn :: Ppr a => a -> IO ()
+pprLn = putStrLn . pprint
+-- pprint :: Ppr a => a -> String
+
+main = do
+  decs <- runQ build_p1
+  pprLn decs
+  print $ p1(1,2)
+```
+
+``` {.haskell }
+class Monad m => Quasi m where ...
+instance Quasi Q where ...
+instance Quasi IO where ...
+runQ :: Quasi m => Q a -> m a
+```
+
+# Fresh names
+
+Building and transforming structure trees for a language with bindings
+is complicated because of possible name conflicts.
+
+Luckily, TH provides the function
+[newName](https://hackage.haskell.org/packages/archive/template-haskell/2.14.0.0/doc/html/Language-Haskell-TH.html#v:newName):
+
+```
+newName :: String -> Q Name
+```
+
+(which, by the way, explains one of the reaosns why
+[Q](https://hackage.haskell.org/packages/archive/template-haskell/2.14.0.0/doc/html/Language-Haskell-TH.html#t:Q) needs to be a monad).
+
+Using `newName` we can safeguard our code against name clashes.
+
+Note, however, that `p1` is global and must use `mkName`,
+while `a` and `b` are locals, so we shall generate them using `newName`.
+
+# Build2
+
+```
+{-# START_FILE Build2.hs #-}
+{-# LANGUAGE TemplateHaskell #-}
+module Build2 where
+import Language.Haskell.TH
+
+build_p1 :: Q [Dec]
+build_p1 = do
+  let p1 = mkName "p1"
+  a <- newName "a"
+  b <- newName "b"
+  return
+    [ FunD p1
+             [ Clause [TupP [VarP a,VarP b]] (NormalB (VarE a)) []
+             ]
+    ]
+
+{-# LANGUAGE TemplateHaskell #-}
+import Language.Haskell.TH
+import Build2
+
+$(build_p1)
+
+main = print $ p1 (1,2)
+```
+
+# Typical TH use
+
+Let us define all projections for large (say 16-) tuples.
+Writing this by hand is no fun, but TH helps avoid the boilerplate.
+
+Here we start by pairs, but extending it to larger tuples is a simple exercise.
+
+An auxiliary function building a simple declaration may come handy, e.g.
+
+```
+simpleFun name pats rhs = FunD name [Clause pats (NormalB rhs) []]
+```
+
+Given a function such that `build_p n` builds the nth projection,
+we can build them all using `mapM`
+
+```
+build_ps = mapM build_p [1,2]
+```
+
+Then we may splice the definitions into the program
+
+```
+$(build_ps)
+
+main = mapM_ print
+  [ p2_1 (1,2)
+  , p2_2 (1,2)
+  ]
+```
+
+# Build3
+
+``` {.haskell}
+{-# START_FILE Build3.hs #-}
+{-# LANGUAGE TemplateHaskell #-}
+module Build3 where
+import Language.Haskell.TH
+
+simpleFun :: Name -> [Pat] -> Exp -> Dec
+simpleFun name pats rhs = FunD name [Clause pats (NormalB rhs) []]
+
+build_ps = mapM build_p [1,2] where
+    fname n = mkName $ "p2_" ++ show n
+    argString k = "a" ++ show k
+    argStrings = map argString [1,2]
+    build_p n = do
+        argNames <- mapM newName argStrings
+        let args = map VarP argNames
+        return $ simpleFun (fname n) [TupP args] (VarE (argNames !! (n-1)))
+
+{-# START_FILE Declare3.hs #-}
+{-# LANGUAGE TemplateHaskell #-}
+
+import Language.Haskell.TH
+
+import Build3
+build_ps -- one may omit $(...) for declarations
+
+main = mapM_ print
+    [ p2_1 (1,2)
+    , p2_2 (1,2)
+    ]
+```
+
+# Quote, eval, quasiquote
+
+In Lisp we have quote: `'` (`code -> data`)
+
+```
+(+ 1 1)         => 2
+'(+ 1 1)        => (list '+ 1 1)
+(eval '(+ 1 1)) => 2
+(1 2 3)         ERROR
+'(1 2 3)        => (list 1 2 3)
+'(1 (+ 1 1) 3)  => (list 1 '(+ 1 1) 3)
+```
+
+and slightly more involved quasiquote ` ` `/ unquote `,` pair:
+
+```
+`(1 ,(+ 1 1) 3) => (list 1 2 3)
+```
+
+enabling us to evaluate some fragments inside quoted code
+
+# Quasiquoting
+
+We have seen the standard quasiquoters e, t, d, p (e.g. `[e| \x -> x +1|]` ).
+We can also define our own:
+
+```
+longString = [str|This is a multiline string.
+It contains embedded newlines. And Unicode:
+
+Ἐν ἀρχῇ ἦν ὁ Λόγος
+
+It ends here: |]
+
+main = putStrLn longString
+```
+
+``` {.haskell}
+module Str(str) where
+
+import Language.Haskell.TH
+import Language.Haskell.TH.Quote
+
+str = QuasiQuoter { quoteExp = stringE }
+```
+
+```
+> :i QuasiQuoter
+data QuasiQuoter
+  = QuasiQuoter {quoteExp :: String -> Q Exp,
+                 quotePat :: String -> Q Pat,
+                 quoteType :: String -> Q Type,
+                 quoteDec :: String -> Q [Dec]}
+  	-- Defined in ‘Language.Haskell.TH.Quote’
+```
+
+# Parsing Expressions
+
+Let's start with a simple data type and parser for arithmetic expressions
+
+
+``` { .haskell }
+{-# LANGUAGE DeriveDataTypeable #-}
+
+data Exp = EInt Int
+  | EAdd Exp Exp
+  | ESub Exp Exp
+  | EMul Exp Exp
+  | EDiv Exp Exp
+    deriving(Show,Typeable,Data)
+-- deriving Data needed to use generic function
+-- liftData :: Data a => a -> ExpQ
+
+pExp :: Parser Exp
+-- ...
+
+test1 = parse pExp "test1" "1 - 2 - 3 * 4 "
+main = print test1
+```
+
+# Testing
+
+Now let's say we need some expresion trees in our program. For this kind of expressions we could (almost) get by  with `class Num` hack:
+
+``` { .haskell }
+instance Num Exp where
+  fromInteger = EInt . fromInteger
+  (+) = EAdd
+  (*) = EMul
+  (-) = ESub
+
+testExp :: Exp
+testExp = (2 + 2) * 3
+```
+
+...but it is neither extensible nor, in fact, nice.
+
+Of course as soon as we have a parser ready we could use it to build expressions
+
+``` { .haskell }
+testExp = parse pExp "testExp" "1+2*3"
+```
+...but then potential errors in the expression texts remain undetected until runtime, and also this is not flexible enough: what if we wanted a simplifier for expressions, along the lines of
+
+``` { .haskell }
+simpl :: Exp -> Exp
+simpl (EAdd (EInt 0) x) = x
+```
+
+# Why it's good to be Quasiquoted
+
+what if we could instead write
+
+``` { .haskell }
+simpl :: Exp -> Exp
+simpl (0 + x) = x
+```
+
+turns out with quasiquotation we can do just that (albeit with a slightly different syntax), so to whet your appetite:
+
+``` { .haskell }
+simpl :: Exp -> Exp
+simpl [expr|0 + $x|] = x
+
+main = print $ simpl [expr|0+2|]
+-- ...
+expr  :: QuasiQuoter
+expr  =  QuasiQuoter
+  { quoteExp = quoteExprExp
+  , quotePat = quoteExprPat
+  , quoteDec = undefined
+  , quoteType = undefined
+  }
+```
+
+as we can see, a QuasiQuoter consists of quasiquoters for expressions, patterns, declarations and types (the last two remain undefined in our example). Let us start with the (perhaps simplest) quasiquoter for expressions:
+
+
+``` { .haskell }
+quoteExprExp s = do
+  pos <- getPosition
+  exp <- parseExp pos s
+  dataToExpQ (const Nothing) exp
+```
+
+# Quasiquoting Expressions
+
+There are three steps:
+
+* record the current position in Haskell file (for parse error reporting);
+* parse the expression into our abstract syntax;
+* convert our abstract syntax to its Template Haskell representation.
+
+The first step is accomplished using [Language.Haskell.TH.location](http://hackage.haskell.org/packages/archive/template-haskell/2.8.0.0/doc/html/Language-Haskell-TH.html#v:location) and converting it to something usable by Parsec:
+
+``` haskell
+getPosition = fmap transPos TH.location where
+  transPos loc = (TH.loc_filename loc,
+                           fst (TH.loc_start loc),
+	                       snd (TH.loc_start loc))
+```
+
+Parsing is done using our expression parser but generating Template Haskell seems like quite a task. Luckily we can save us some work use facilities for generic programming provided by [Data.Data](http://hackage.haskell.org/packages/archive/base/4.6.0.1/doc/html/Data-Data.html) combined with an almost magical Template Haskell function [dataToExpQ](http://hackage.haskell.org/packages/archive/template-haskell/latest/doc/html/Language-Haskell-TH-Quote.html#v:dataToExpQ), or a simpler
+
+```
+liftData :: Data a => a -> Q Exp
+```
+
+
+
+# Quasiquoting patterns
+
+So far, we are halfway through to our goal: we can use the quasiquoter on the right hand side of function definitions:
+
+``` { .haskell }
+testExp :: Exp
+testExp = [expr|1+2*3|]
+```
+
+To be able to write things like
+
+``` { .haskell }
+simpl [expr|0 + $x|] = x
+```
+we need to write a quasiquoter for patterns. However, let us start with something less ambitious -  a quasiquoter for constant patterns, allowing us to write
+
+``` { .haskell }
+testExp :: Exp
+testExp = [expr|1+2*3|]
+
+f1 :: Exp -> String
+f1 [expr| 1 + 2*3 |] = "Bingo!"
+f1 _ = "Sorry, no bonus"
+
+main = putStrLn $ f1 testExp
+```
+
+This can be done similarly to the quasiquoter for expressions:
+
+* record the current position in Haskell file (for parse error reporting);
+* parse the expression into our abstract syntax;
+* convert our abstract syntax to its Template Haskell representation.
+
+Only the last part needs to be slightly different - this time we need to construct Template Haskell pattern representation:
+
+``` haskell
+quoteExprPat :: String -> TH.Q TH.Pat
+quoteExprPat s = do
+  pos <- getPosition
+  exp <- parseExp pos s
+  dataToPatQ (const Nothing) exp
+
+```
+
+The functions `quoteExprExp` and `quoteExprPat` differ in two respects:
+
+* use `dataToPatQ` instead of `dataToExpQ`
+* the result type is different (obviously)
+
+# Antiquotation
+
+The quasiquotation mechanism we have seen so far allows us to translate domain-specific code into Haskell and `inject` it into our program. Antiquotation, as the name suggests goes in the opposite direction: embeds Haskell entities (e.g. variables) in our DSL.
+
+This sounds complicated, but isn't really. Think HTML templates:
+
+``` { .html}
+<html>
+<head>
+<title>#{pageTitle}
+```
+
+The meaning is hopefully obvious - the value of program variable `pageTitle` should be embedded in the indicated place. In our expression language we might want to write
+
+```
+twice :: Exp -> Exp
+twice e = [expr| $e + $e |]
+
+testTwice = twice [expr| 3 * 3|]
+```
+
+This is nothing revolutionary. Haskell however, uses variables not only in expressions, but also in patterns, and here the story becomes a little interesting.
+
+# Extending quasiquoters
+
+Recall the pattern quasiquoter:
+
+``` { .haskell }
+quoteExprPat :: String -> TH.Q TH.Pat
+quoteExprPat s = do
+  pos <- getPosition
+  exp <- parseExp pos s
+  dataToPatQ (const Nothing) exp
+```
+
+The `const Nothing` is a placeholder for extensions to the standard `Data` to `Pat` translation:
+
+``` haskell
+quoteExprExp s = do
+  pos <- getPosition
+  exp <- parseExp pos s
+  dataToExpQ (const Nothing  `extQ` antiExprExp) exp
+```
+
+# What’s function extension?
+You have
+
+* a generic query
+```
+gen :: Data a => a -> R
+```
+* a type-specific query
+```
+spec :: T -> R
+```
+
+You want a generic function which behaves like spec on values of type T,
+and like gen on all other values
+```
+gen `extQ` spec :: Data a => a -> R
+```
+
+# Metavariables
+Let us extend our expression syntax and parser with metavariables (variables from the metalanguage):
+
+```haskell
+data Exp =  ... | EMetaVar String
+           deriving(Show,Typeable,Data)
+
+pExp :: Parser Exp
+pExp = pTerm `chainl1` spaced addop
+
+pTerm = spaced pFactor `chainl1` spaced mulop
+pFactor = pNum <|> pMetaVar
+
+pMetaVar = char '$' >> EMetaVar <$> ident
+
+test1 = parse pExp "test1" "1 - 2 - 3 * 4 "
+test2 = parse pExp "test2" "$x - $y*$z"
+```
+
+The antiquoter is defined as an extension for the `dataToPatQ`:
+
+``` haskell
+antiExprPat :: Exp -> Maybe (TH.Q TH.Pat)
+antiExprPat (EMetaVar v) = Just $ TH.varP (TH.mkName v)
+antiExprPat _ = Nothing
+```
+
+* metavariables are translated to `Just` TH variables
+* for all the other cases we say `Nothing` - allowing `dataToPatQ` use its default rules
+
+And that's it! Now we can write
+
+``` haskell
+eval [expr| $a + $b|] = eval a + eval b
+eval [expr| $a * $b|] = eval a * eval b
+eval (EInt n) = n
+```
+
+## Exercises
+
+* Extend the expression simplifier with more rules.
+
+* Add antiquotation to `quoteExprExp`
+
+* Extend the expression quasiquoter to handle metavariables for
+  numeric constants, allowing to implement simplification rules like
+
+```
+simpl [expr|$int:n$ + $int:m$|] = [expr| $int:m+n$ |]
+```
+
+(you are welcome to invent your own syntax in place of `$int: ... $`)
+
+# Term projects
+
+Haskell: **simple** 1-4 person project.
+
+Presentations: June 11.
+
+Sample projects:
+
+* demonstrating use of techniques discussed in the course (e.g. TH, QuickCheck, dependent types, parallelism,wykorzystanie technik prezentowanych na wykładzie, np. Template Haskell)
+* synthesis of a function of a given type, perhaps also passing specified tests (may be difficult, it might be enough to do it in a limited setting);
+parallelising may be a bonus.
+
+Alternative to Haskell project: presentation on interesting Haskell topics during the lecture (possibly plus lab)
