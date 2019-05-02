@@ -7,17 +7,11 @@ date: May 14, 2019
 
 # Metaprogramming - Template Haskell
 
-Interactive tutorials on  [School of Haskell](https://www.schoolofhaskell.com/) (SoH is being migrated and interactive features do not work currnetly)
+Code for today is on github:
 
-* [Template Haskell](https://www.schoolofhaskell.com/user/marcin/template-haskell-101)
-
-* Code/TH/Here
-
-* Code/TH/Projections
-
-* [Quasiquotation](https://www.fpcomplete.com/user/marcin/quasiquotation-101)
-
-* Code/TH/QQ
+* Code/TH/Here - multiline strings with TH (aka here docs)
+* Code/TH/Projections - building declarations in TH
+* Code/TH/QQ  - quasiquotation
 
 # Problem: multiline strings
 
@@ -66,13 +60,13 @@ import Language.Haskell.TH.Quote
 str = QuasiQuoter { quoteExp = stringE }
 ```
 
-LEt's try to understand how it works...
+Let's try to understand how it works...
 
 # Parsing Haskell code at runtime
 
-Quotations - `[f| ... |]` are a mechanism for generating ASTs.
-The function `f` determines how the bracket content is parsed
-(default is Haskell expressions).
+Quotations - `[q| ... |]` are a mechanism for generating ASTs.
+The quasiquoter `q` determines how the bracket content is parsed
+(default is `e` for Haskell expressions).
 
 This [tutorial](https://web.archive.org/web/20180501004533/http://www.hyperedsoftware.com:80/blog/entries/first-stab-th.html)
 recommends experimenting in GHCi:
@@ -105,12 +99,14 @@ data Exp
 > :t [| \x -> 1 |]
 [| \x -> 1 |] :: ExpQ
 > :i ExpQ
-type ExpQ = Q Exp 	-- Defined in ‘Language.Haskell.TH.Lib’
+type ExpQ = Q Exp 	-- Defined in ‘Language.Haskell.TH.Lib.Internal’
 
 > :i Q
+type role Q nominal
 newtype Q a = ... -- Defined in ‘Language.Haskell.TH.Syntax’
-instance Monad Q
+instance Applicative Q
 instance Functor Q
+instance Monad Q
 
 > :t runQ
 runQ :: Language.Haskell.TH.Syntax.Quasi m => Q a -> m a
@@ -121,17 +117,26 @@ instance Quasi Q
 instance Quasi IO
 ```
 
+Basically `runQ` can be used to evaluate `Q` computations both in the `Q` context (natural habitat) and the `IO` context (useful for experimentation).
+
+(curious about `type role Q nominal`? - see e.g. this [question](https://stackoverflow.com/questions/49209788/simplest-examples-demonstrating-the-need-for-nominal-type-role-in-haskell)
+
 # Splicing structure trees into a program
 
 ```
 > runQ [| succ 1 |]
 AppE (VarE GHC.Enum.succ) (LitE (IntegerL 1))
-Prelude Language.Haskell.TH> $(return it)
+
+> $(return it)
 2
 
-> $(return (LitE (IntegerL 42)))
+> int = LitE . IntegerL
+
+> $(return (int 42))
 42
 
+> 1 + $(return (int 41))
+42
 ```
 
 but:
@@ -150,6 +155,7 @@ Prelude Language.Haskell.TH> $(return (AppE (VarE "GHC.Enum.succ") (LitE (Intege
 VarE :: Name -> Exp
 ```
 
+`VarE` needs a `Name`
 
 # Names, patterns, declarations
 
@@ -180,7 +186,7 @@ data Dec
 
 Let us now try to build such a definition ourselves.
 
-Note that we need to use two modules, since definitions to be run during compilation have to be imported from a different module.
+Note that we need to use two modules, since definitions to be run during compilation have to be imported from a different module --- the code to be run needs to be compiled first.
 
 # Build1
 
@@ -247,9 +253,12 @@ Luckily, TH provides the function
 
 ```
 newName :: String -> Q Name
+
+> runQ ((,) <$> newName "x" <*> newName "x" )
+(x_1,x_2)
 ```
 
-(which, by the way, explains one of the reaosns why
+(which, by the way, explains one of the reasons why
 [Q](https://hackage.haskell.org/packages/archive/template-haskell/2.14.0.0/doc/html/Language-Haskell-TH.html#t:Q) needs to be a monad).
 
 Using `newName` we can safeguard our code against name clashes.
@@ -259,7 +268,7 @@ while `a` and `b` are locals, so we shall generate them using `newName`.
 
 # Build2
 
-```
+``` haskell
 {-# START_FILE Build2.hs #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Build2 where
@@ -294,20 +303,20 @@ Here we start by pairs, but extending it to larger tuples is a simple exercise.
 
 An auxiliary function building a simple declaration may come handy, e.g.
 
-```
+``` haskell
 simpleFun name pats rhs = FunD name [Clause pats (NormalB rhs) []]
 ```
 
 Given a function such that `build_p n` builds the nth projection,
 we can build them all using `mapM`
 
-```
+``` haskell
 build_ps = mapM build_p [1,2]
 ```
 
 Then we may splice the definitions into the program
 
-```
+``` haskell
 $(build_ps)
 
 main = mapM_ print
@@ -320,7 +329,6 @@ main = mapM_ print
 
 ``` {.haskell}
 {-# START_FILE Build3.hs #-}
-{-# LANGUAGE TemplateHaskell #-}
 module Build3 where
 import Language.Haskell.TH
 
@@ -329,17 +337,13 @@ simpleFun name pats rhs = FunD name [Clause pats (NormalB rhs) []]
 
 build_ps = mapM build_p [1,2] where
     fname n = mkName $ "p2_" ++ show n
-    argString k = "a" ++ show k
-    argStrings = map argString [1,2]
     build_p n = do
-        argNames <- mapM newName argStrings
+        argNames <- mapM newName (replicate 2 "a")
         let args = map VarP argNames
         return $ simpleFun (fname n) [TupP args] (VarE (argNames !! (n-1)))
 
 {-# START_FILE Declare3.hs #-}
 {-# LANGUAGE TemplateHaskell #-}
-
-import Language.Haskell.TH
 
 import Build3
 build_ps -- one may omit $(...) for declarations
@@ -363,7 +367,7 @@ In Lisp we have quote: `'` (`code -> data`)
 '(1 (+ 1 1) 3)  => (list 1 '(+ 1 1) 3)
 ```
 
-and slightly more involved quasiquote ` ` `/ unquote `,` pair:
+and a slightly more involved quasiquote/unquote pair: `` `/, `` (backtick/comma)
 
 ```
 `(1 ,(+ 1 1) 3) => (list 1 2 3)
@@ -376,7 +380,7 @@ enabling us to evaluate some fragments inside quoted code
 We have seen the standard quasiquoters e, t, d, p (e.g. `[e| \x -> x +1|]` ).
 We can also define our own:
 
-```
+``` haskell
 longString = [str|This is a multiline string.
 It contains embedded newlines. And Unicode:
 
@@ -503,7 +507,7 @@ There are three steps:
 * parse the expression into our abstract syntax;
 * convert our abstract syntax to its Template Haskell representation.
 
-The first step is accomplished using [Language.Haskell.TH.location](http://hackage.haskell.org/packages/archive/template-haskell/2.8.0.0/doc/html/Language-Haskell-TH.html#v:location) and converting it to something usable by Parsec:
+The first step is accomplished using [Language.Haskell.TH.location](http://hackage.haskell.org/packages/archive/template-haskell/2.14.0.0/doc/html/Language-Haskell-TH.html#v:location) and converting it to something usable by Parsec:
 
 ``` haskell
 getPosition = fmap transPos TH.location where
@@ -512,9 +516,9 @@ getPosition = fmap transPos TH.location where
 	                       snd (TH.loc_start loc))
 ```
 
-Parsing is done using our expression parser but generating Template Haskell seems like quite a task. Luckily we can save us some work use facilities for generic programming provided by [Data.Data](http://hackage.haskell.org/packages/archive/base/4.6.0.1/doc/html/Data-Data.html) combined with an almost magical Template Haskell function [dataToExpQ](http://hackage.haskell.org/packages/archive/template-haskell/latest/doc/html/Language-Haskell-TH-Quote.html#v:dataToExpQ), or a simpler
+Parsing is done using our expression parser but generating Template Haskell seems like quite a task. Luckily we can save us some work use facilities for generic programming provided by [Data.Data](http://hackage.haskell.org/package/base/docs/Data-Data.html) combined with an almost magical Template Haskell function [dataToExpQ](http://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH-Syntax.html#v:dataToExpQ), or a simpler [liftData](http://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH-Syntax.html#v:liftData)
 
-```
+``` haskell
 liftData :: Data a => a -> Q Exp
 ```
 
