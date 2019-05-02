@@ -418,19 +418,19 @@ Let's start with a simple data type and parser for arithmetic expressions
 ``` { .haskell }
 {-# LANGUAGE DeriveDataTypeable #-}
 
-data Exp = EInt Int
-  | EAdd Exp Exp
-  | ESub Exp Exp
-  | EMul Exp Exp
-  | EDiv Exp Exp
+data Expr = EInt Int
+  | EAdd Expr Expr
+  | ESub Expr Expr
+  | EMul Expr Expr
+  | EDiv Expr Expr
     deriving(Show,Typeable,Data)
 -- deriving Data needed to use generic function
 -- liftData :: Data a => a -> ExpQ
 
-pExp :: Parser Exp
+pExpr :: Parser Expr
 -- ...
 
-test1 = parse pExp "test1" "1 - 2 - 3 * 4 "
+test1 = parse pExpr "test1" "1 - 2 - 3 * 4 "
 main = print test1
 ```
 
@@ -439,14 +439,14 @@ main = print test1
 Now let's say we need some expresion trees in our program. For this kind of expressions we could (almost) get by  with `class Num` hack:
 
 ``` { .haskell }
-instance Num Exp where
+instance Num Expr where
   fromInteger = EInt . fromInteger
   (+) = EAdd
   (*) = EMul
   (-) = ESub
 
-testExp :: Exp
-testExp = (2 + 2) * 3
+testExpr :: Expr
+testExpr = (2 + 2) * 3
 ```
 
 ...but it is neither extensible nor, in fact, nice.
@@ -454,12 +454,12 @@ testExp = (2 + 2) * 3
 Of course as soon as we have a parser ready we could use it to build expressions
 
 ``` { .haskell }
-testExp = parse pExp "testExp" "1+2*3"
+testExpr = parse pExpr "testExpr" "1+2*3"
 ```
 ...but then potential errors in the expression texts remain undetected until runtime, and also this is not flexible enough: what if we wanted a simplifier for expressions, along the lines of
 
 ``` { .haskell }
-simpl :: Exp -> Exp
+simpl :: Expr -> Expr
 simpl (EAdd (EInt 0) x) = x
 ```
 
@@ -468,14 +468,14 @@ simpl (EAdd (EInt 0) x) = x
 what if we could instead write
 
 ``` { .haskell }
-simpl :: Exp -> Exp
+simpl :: Expr -> Expr
 simpl (0 + x) = x
 ```
 
 turns out with quasiquotation we can do just that (albeit with a slightly different syntax), so to whet your appetite:
 
 ``` { .haskell }
-simpl :: Exp -> Exp
+simpl :: Expr -> Expr
 simpl [expr|0 + $x|] = x
 
 main = print $ simpl [expr|0+2|]
@@ -493,6 +493,7 @@ as we can see, a QuasiQuoter consists of quasiquoters for expressions, patterns,
 
 
 ``` { .haskell }
+quoteExprExp :: String -> Q Exp
 quoteExprExp s = do
   pos <- getPosition
   exp <- parseExp pos s
@@ -510,27 +511,32 @@ There are three steps:
 The first step is accomplished using [Language.Haskell.TH.location](http://hackage.haskell.org/packages/archive/template-haskell/2.14.0.0/doc/html/Language-Haskell-TH.html#v:location) and converting it to something usable by Parsec:
 
 ``` haskell
-getPosition = fmap transPos TH.location where
-  transPos loc = (TH.loc_filename loc,
-                           fst (TH.loc_start loc),
-	                       snd (TH.loc_start loc))
+getPosition = fmap transPos location where
+  transPos loc = (loc_filename loc,
+                           fst (loc_start loc),
+	                       snd (loc_start loc))
 ```
 
-Parsing is done using our expression parser but generating Template Haskell seems like quite a task. Luckily we can save us some work use facilities for generic programming provided by [Data.Data](http://hackage.haskell.org/package/base/docs/Data-Data.html) combined with an almost magical Template Haskell function [dataToExpQ](http://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH-Syntax.html#v:dataToExpQ), or a simpler [liftData](http://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH-Syntax.html#v:liftData)
+Parsing is done using our expression parser but generating Haskell AST seems like quite a task.
+Luckily we can save us some work use facilities for generic programming provided by
+[Data.Data](http://hackage.haskell.org/package/base/docs/Data-Data.html)
+combined with an almost magical Template Haskell function
+[dataToExpQ](http://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH-Syntax.html#v:dataToExpQ),
+or a simpler [liftData](http://hackage.haskell.org/package/template-haskell-2.14.0.0/docs/Language-Haskell-TH-Syntax.html#v:liftData)
 
 ``` haskell
 liftData :: Data a => a -> Q Exp
 ```
 
 
-
 # Quasiquoting patterns
 
-So far, we are halfway through to our goal: we can use the quasiquoter on the right hand side of function definitions:
+So far, we are halfway through to our goal: we can use the quasiquoter
+on the right hand side of function definitions:
 
 ``` { .haskell }
-testExp :: Exp
-testExp = [expr|1+2*3|]
+testExpr :: Expr
+testExpr = [expr|1+2*3|]
 ```
 
 To be able to write things like
@@ -538,17 +544,19 @@ To be able to write things like
 ``` { .haskell }
 simpl [expr|0 + $x|] = x
 ```
-we need to write a quasiquoter for patterns. However, let us start with something less ambitious -  a quasiquoter for constant patterns, allowing us to write
+we need to write a quasiquoter for patterns.
+However, let us start with something less ambitious -
+a quasiquoter for constant patterns, allowing us to write
 
 ``` { .haskell }
-testExp :: Exp
-testExp = [expr|1+2*3|]
+testExpr :: Expr
+testExpr = [expr|1+2*3|]
 
-f1 :: Exp -> String
+f1 :: Expr -> String
 f1 [expr| 1 + 2*3 |] = "Bingo!"
 f1 _ = "Sorry, no bonus"
 
-main = putStrLn $ f1 testExp
+main = putStrLn $ f1 testExpr
 ```
 
 This can be done similarly to the quasiquoter for expressions:
@@ -563,7 +571,7 @@ Only the last part needs to be slightly different - this time we need to constru
 quoteExprPat :: String -> TH.Q TH.Pat
 quoteExprPat s = do
   pos <- getPosition
-  exp <- parseExp pos s
+  exp <- parseExpr pos s
   dataToPatQ (const Nothing) exp
 
 ```
@@ -588,7 +596,7 @@ This sounds complicated, but isn't really. Think HTML templates:
 The meaning is hopefully obvious - the value of program variable `pageTitle` should be embedded in the indicated place. In our expression language we might want to write
 
 ```
-twice :: Exp -> Exp
+twice :: Expr -> Expr
 twice e = [expr| $e + $e |]
 
 testTwice = twice [expr| 3 * 3|]
@@ -604,7 +612,7 @@ Recall the pattern quasiquoter:
 quoteExprPat :: String -> TH.Q TH.Pat
 quoteExprPat s = do
   pos <- getPosition
-  exp <- parseExp pos s
+  exp <- parseExpr pos s
   dataToPatQ (const Nothing) exp
 ```
 
@@ -613,7 +621,7 @@ The `const Nothing` is a placeholder for extensions to the standard `Data` to `P
 ``` haskell
 quoteExprExp s = do
   pos <- getPosition
-  exp <- parseExp pos s
+  exp <- parseExpr pos s
   dataToExpQ (const Nothing  `extQ` antiExprExp) exp
 ```
 

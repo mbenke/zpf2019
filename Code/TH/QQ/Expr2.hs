@@ -7,16 +7,16 @@ import Data.Data
 import Control.Applicative((<$>),(*>),(<*))
 
 -- show
-data Exp = EInt Int 
-         | EAdd Exp Exp
-         | ESub Exp Exp
-         | EMul Exp Exp
-         | EDiv Exp Exp
+data Expr = EInt Int
+         | EAdd Expr Expr
+         | ESub Expr Expr
+         | EMul Expr Expr
+         | EDiv Expr Expr
          | EMetaVar String
            deriving(Show,Typeable,Data)
-                   
-pExp :: Parser Exp
-pExp = pTerm `chainl1` spaced addop
+
+pExpr :: Parser Expr
+pExpr = pTerm `chainl1` spaced addop
 
 pTerm = spaced pFactor `chainl1` spaced mulop
 pFactor = pNum <|> pMetaVar
@@ -29,14 +29,14 @@ large   = upper
 idchar  = small <|> large <|> digit <|> char '\''
 ident = do { c <- small; cs <- many idchar; return (c:cs) }
 
-addop :: Parser (Exp->Exp->Exp)
+addop :: Parser (Expr->Expr->Expr)
 addop = fmap (const EAdd) (char '+')
           <|> fmap (const ESub) (char '-')
-            
-mulop :: Parser (Exp->Exp->Exp)
+
+mulop :: Parser (Expr->Expr->Expr)
 mulop = pOps [EMul,EDiv] ['*','/']
 
-pNum :: Parser Exp
+pNum :: Parser Expr
 pNum = fmap (EInt . digitToInt) digit
 
 
@@ -52,18 +52,18 @@ spaced p = spaces *> p <* spaces
 pOp :: (a,Char) -> Parser a
 pOp (f,s) = f `whenP` char s
 
-test1 = parse pExp "test1" "1 - 2 - 3 * 4 "
-test2 = parse pExp "test2" "$x - $y*$z"
+test1 = parse pExpr "test1" "1 - 2 - 3 * 4 "
+test2 = parse pExpr "test2" "$x - $y*$z"
 
-parseExp :: Monad m => (String, Int, Int) -> String -> m Exp
-parseExp (file, line, col) s =
+parseExpr :: Monad m => (String, Int, Int) -> String -> m Expr
+parseExpr (file, line, col) s =
     case runParser p () "" s of
       Left err  -> fail $ show err
       Right e   -> return e
   where
     p = do updatePosition file line col
            spaces
-           e <- pExp
+           e <- pExpr
            spaces
            eof
            return e

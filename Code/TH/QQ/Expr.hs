@@ -6,24 +6,24 @@ import Data.Typeable
 import Data.Data
 import Control.Applicative((<$>),(*>),(<*))
 
-data Exp = EInt Int 
-         | EAdd Exp Exp
-         | ESub Exp Exp
-         | EMul Exp Exp
-         | EDiv Exp Exp
+data Expr = EInt Int
+         | EAdd Expr Expr
+         | ESub Expr Expr
+         | EMul Expr Expr
+         | EDiv Expr Expr
            deriving(Show,Typeable,Data)
 
-pNum :: Parser Exp
+pNum :: Parser Expr
 pNum = fmap (EInt . digitToInt) digit
 
 
-pExp = pTerm `chainl1` spaced addop
-addop :: Parser (Exp->Exp->Exp)
+pExpr = pTerm `chainl1` spaced addop
+addop :: Parser (Expr->Expr->Expr)
 addop   =   fmap (const EAdd) (char '+')
           <|> fmap (const ESub) (char '-')
-            
+
 pTerm = spaced pNum `chainl1` spaced mulop
-mulop :: Parser (Exp->Exp->Exp)
+mulop :: Parser (Expr->Expr->Expr)
 mulop = pOps [EMul,EDiv] ['*','/']
 
 pOps :: [a] -> [Char] -> Parser a
@@ -38,17 +38,17 @@ spaced p = spaces *> p <* spaces
 pOp :: (a,Char) -> Parser a
 pOp (f,s) = f `whenP` char s
 
-test1 = parse pExp "test1" "1 - 2 - 3 * 4 "
+test1 = parse pExpr "test1" "1 - 2 - 3 * 4 "
 
-parseExp :: Monad m => (String, Int, Int) -> String -> m Exp
-parseExp (file, line, col) s =
+parseExpr :: Monad m => (String, Int, Int) -> String -> m Expr
+parseExpr (file, line, col) s =
     case runParser p () "" s of
       Left err  -> fail $ show err
       Right e   -> return e
   where
     p = do updatePosition file line col
            spaces
-           e <- pExp
+           e <- pExpr
            spaces
            eof
            return e

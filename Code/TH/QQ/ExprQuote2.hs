@@ -2,10 +2,10 @@
 module ExprQuote2 where
 
 import Data.Generics.Aliases
-import qualified Language.Haskell.TH as TH
+import Language.Haskell.TH as TH
 import Language.Haskell.TH.Quote
 
-import Expr2
+import qualified Expr2 as Expr
 
 expr  :: QuasiQuoter
 expr  =  QuasiQuoter
@@ -15,28 +15,28 @@ expr  =  QuasiQuoter
   , quoteType = undefined
   }
 
-quoteExprExp :: String -> TH.Q TH.Exp
+quoteExprExp :: String -> Q Exp
 quoteExprExp s = do
   pos <- getPosition
-  exp <- parseExp pos s
+  exp <- Expr.parseExpr pos s
   dataToExpQ (const Nothing  `extQ` antiExprExp) exp
 
 -- dataToExpQ :: Data a => (forall b. Data b => b -> Maybe (Q Exp)) -> a -> Q Exp
-quoteExprPat :: String -> TH.Q TH.Pat
+quoteExprPat :: String -> Q Pat
 quoteExprPat s = do
   pos <- getPosition
-  exp <- parseExp pos s
+  exp <- Expr.parseExpr pos s
   dataToPatQ (const Nothing `extQ` antiExprPat) exp
 
-antiExprPat :: Exp -> Maybe (TH.Q TH.Pat)
-antiExprPat (EMetaVar v) = Just $ TH.varP (TH.mkName v)
+antiExprPat :: Expr.Expr -> Maybe (Q Pat)
+antiExprPat (Expr.EMetaVar v) = Just $ varP (mkName v)
 antiExprPat _ = Nothing
 
-antiExprExp :: Exp -> Maybe (TH.Q TH.Exp)
-antiExprExp (EMetaVar v) = Just $ TH.varE (TH.mkName v)
+antiExprExp :: Expr.Expr -> Maybe (Q Exp)
+antiExprExp (Expr.EMetaVar v) = Just $ varE (mkName v)
 antiExprExp _ = Nothing
 
-getPosition = fmap transPos TH.location where
-  transPos loc = (TH.loc_filename loc,
-                  fst (TH.loc_start loc),
-                  snd (TH.loc_start loc))
+getPosition = fmap transPos location where
+  transPos loc = (loc_filename loc,
+                  fst (loc_start loc),
+                  snd (loc_start loc))
