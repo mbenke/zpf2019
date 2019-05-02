@@ -583,7 +583,7 @@ The functions `quoteExprExp` and `quoteExprPat` differ in two respects:
 
 # Antiquotation
 
-The quasiquotation mechanism we have seen so far allows us to translate domain-specific code into Haskell and `inject` it into our program. Antiquotation, as the name suggests goes in the opposite direction: embeds Haskell entities (e.g. variables) in our DSL.
+The quasiquotation mechanism we have seen so far allows us to translate domain-specific code into Haskell and "inject" it into our program. Antiquotation, as the name suggests goes in the opposite direction: embeds Haskell entities (e.g. variables) in our DSL.
 
 This sounds complicated, but isn't really. Think HTML templates:
 
@@ -591,9 +591,10 @@ This sounds complicated, but isn't really. Think HTML templates:
 <html>
 <head>
 <title>#{pageTitle}
+<body><h1>#{pageTitle}
 ```
 
-The meaning is hopefully obvious - the value of program variable `pageTitle` should be embedded in the indicated place. In our expression language we might want to write
+The meaning is hopefully obvious --- the value of program variable `pageTitle` should be embedded in the indicated places. In our expression language we might want to write
 
 ```
 twice :: Expr -> Expr
@@ -609,20 +610,20 @@ This is nothing revolutionary. Haskell however, uses variables not only in expre
 Recall the pattern quasiquoter:
 
 ``` { .haskell }
-quoteExprPat :: String -> TH.Q TH.Pat
+quoteExprPat :: String -> Q Pat
 quoteExprPat s = do
   pos <- getPosition
   exp <- parseExpr pos s
   dataToPatQ (const Nothing) exp
 ```
 
-The `const Nothing` is a placeholder for extensions to the standard `Data` to `Pat` translation:
+The `(const Nothing)` is a placeholder for extensions to the standard `Data` to `Pat` translation:
 
 ``` haskell
 quoteExprExp s = do
   pos <- getPosition
   exp <- parseExpr pos s
-  dataToExpQ (const Nothing  `extQ` antiExprExp) exp
+  dataToExpQ (const Nothing `extQ` antiExprExp) exp
 ```
 
 # What’s function extension?
