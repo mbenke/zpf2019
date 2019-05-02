@@ -757,8 +757,6 @@ Presentations: June 11.
 
 Sample projects:
 
-* demonstrating use of techniques discussed in the course (e.g. TH, QuickCheck, dependent types, parallelism,wykorzystanie technik prezentowanych na wykładzie, np. Template Haskell)
+* demonstrating use of techniques discussed in the course (e.g. TH, QuickCheck, dependent types, parallelism)
 * synthesis of a function of a given type, perhaps also passing specified tests (may be difficult, it might be enough to do it in a limited setting);
-parallelising may be a bonus.
-
-Alternative to Haskell project: presentation on interesting Haskell topics during the lecture (possibly plus lab)
+parallelising may be a bonus. See e.g. Djinn by Lennart Augustsson
