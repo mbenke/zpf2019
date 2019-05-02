@@ -12,4 +12,7 @@ declare3: Declare3.hs Build3.hs
 	ghc -o $@ --make Declare3.hs
 
 clean:
-	-rm -f *.hi *.o *.dyn_hi *.dyn_o $(BINFILES)
+	-rm -f *.hi *.o *.dyn_hi *.dyn_o
+
+distclean: clean
+	$(BINFILES)
