@@ -620,54 +620,89 @@ quoteExprPat s = do
 The `(const Nothing)` is a placeholder for extensions to the standard `Data` to `Pat` translation:
 
 ``` haskell
-quoteExprExp s = do
+quoteExprPat :: String -> Q Pat
+quoteExprPat s = do
   pos <- getPosition
-  exp <- parseExpr pos s
-  dataToExpQ (const Nothing `extQ` antiExprExp) exp
+  exp <- Expr.parseExpr pos s
+  dataToPatQ (const Nothing `extQ` antiExprPat) exp
 ```
 
-# What’s function extension?
+What are the "extensions"?
+
+# What’s a function extension?
 You have
 
-* a generic query
+* a generic function, say
 ```
 gen :: Data a => a -> R
 ```
-* a type-specific query
+* a type-specific function, say
 ```
 spec :: T -> R
 ```
 
 You want a generic function which behaves like spec on values of type T,
-and like gen on all other values
+and like gen on all other values.
+
+The function `extQ` does just that.
+
 ```
-gen `extQ` spec :: Data a => a -> R
+extQ :: (Typeable a, Typeable b) => (a -> r) -> (t -> r) -> a -> r
+
+gen `extQ` spec :: Data a => a -> R  -- Data is a subclass of Typeable
+```
+
+(NB `extQ` comes from `Data.Generics` and the `Q` in the name has nothing to do with
+Template Haskell `Q` monad)
+
+# Extending `dataToPatQ`
+
+
+```
+const Nothing :: b -> Maybe (Q Pat)
+
+extQ :: (Data a, Data t) => (a -> r) -> (t -> r) -> a -> r
+-- specialized to Data
+
+antiExprPat :: Expr -> Maybe (Q Pat)
+
+const Nothing `extQ` antiExprPat :: forall b.Data b => b -> Maybe (Q Pat)
+
+dataToPatQ
+  :: Data a =>
+     (forall b.Data b => b -> Maybe (Q Pat)) -> a -> Q Pat
+-- specialized To Expr
+-- :: (forall b.Data b => b -> Maybe (Q Pat)) -> Expr -> Q Pat
+
+dataToPatQ (const Nothing `extQ` antiExprPat) :: Expr -> Q Pat
 ```
 
 # Metavariables
 Let us extend our expression syntax and parser with metavariables (variables from the metalanguage):
 
 ```haskell
-data Exp =  ... | EMetaVar String
+data Expr =  ... | EMetaVar String
            deriving(Show,Typeable,Data)
 
-pExp :: Parser Exp
-pExp = pTerm `chainl1` spaced addop
+pExpr :: Parser Expr
+pExpr = pTerm `chainl1` spaced addop
 
 pTerm = spaced pFactor `chainl1` spaced mulop
 pFactor = pNum <|> pMetaVar
 
 pMetaVar = char '$' >> EMetaVar <$> ident
 
-test1 = parse pExp "test1" "1 - 2 - 3 * 4 "
-test2 = parse pExp "test2" "$x - $y*$z"
+test1 = parse pExpr "test1" "1 - 2 - 3 * 4 "
+test2 = parse pExpr "test2" "$x - $y*$z"
 ```
+
+# Antiquoting metavariables
 
 The antiquoter is defined as an extension for the `dataToPatQ`:
 
 ``` haskell
-antiExprPat :: Exp -> Maybe (TH.Q TH.Pat)
-antiExprPat (EMetaVar v) = Just $ TH.varP (TH.mkName v)
+antiExprPat :: Expr -> Maybe (Q Pat)
+antiExprPat (EMetaVar v) = Just $ varP (mkName v)
 antiExprPat _ = Nothing
 ```
 
@@ -682,7 +717,7 @@ eval [expr| $a * $b|] = eval a * eval b
 eval (EInt n) = n
 ```
 
-## Exercises
+# Exercises
 
 * Extend the expression simplifier with more rules.
 

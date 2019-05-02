@@ -517,12 +517,13 @@ data QuasiQuoter
 </div>
 <div id="antiquotation" class="slide section level1">
 <h1>Antiquotation</h1>
-<p>The quasiquotation mechanism we have seen so far allows us to translate domain-specific code into Haskell and <code>inject</code> it into our program. Antiquotation, as the name suggests goes in the opposite direction: embeds Haskell entities (e.g. variables) in our DSL.</p>
+<p>The quasiquotation mechanism we have seen so far allows us to translate domain-specific code into Haskell and “inject” it into our program. Antiquotation, as the name suggests goes in the opposite direction: embeds Haskell entities (e.g. variables) in our DSL.</p>
 <p>This sounds complicated, but isn’t really. Think HTML templates:</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode html"><code class="sourceCode html"><a class="sourceLine" id="cb38-1" title="1"><span class="kw">&lt;html&gt;</span></a>
 <a class="sourceLine" id="cb38-2" title="2"><span class="kw">&lt;head&gt;</span></a>
-<a class="sourceLine" id="cb38-3" title="3"><span class="kw">&lt;title&gt;</span>#{pageTitle}</a></code></pre></div>
-<p>The meaning is hopefully obvious - the value of program variable <code>pageTitle</code> should be embedded in the indicated place. In our expression language we might want to write</p>
+<a class="sourceLine" id="cb38-3" title="3"><span class="kw">&lt;title&gt;</span>#{pageTitle}</a>
+<a class="sourceLine" id="cb38-4" title="4"><span class="kw">&lt;body&gt;&lt;h1&gt;</span>#{pageTitle}</a></code></pre></div>
+<p>The meaning is hopefully obvious — the value of program variable <code>pageTitle</code> should be embedded in the indicated places. In our expression language we might want to write</p>
 <pre><code>twice :: Expr -&gt; Expr
 twice e = [expr| $e + $e |]
 
@@ -532,60 +533,90 @@ testTwice = twice [expr| 3 * 3|]</code></pre>
 <div id="extending-quasiquoters" class="slide section level1">
 <h1>Extending quasiquoters</h1>
 <p>Recall the pattern quasiquoter:</p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb40-1" title="1"><span class="ot">quoteExprPat ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">TH.Q</span> <span class="dt">TH.Pat</span></a>
+<div class="sourceCode" id="cb40"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb40-1" title="1"><span class="ot">quoteExprPat ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Q</span> <span class="dt">Pat</span></a>
 <a class="sourceLine" id="cb40-2" title="2">quoteExprPat s <span class="ot">=</span> <span class="kw">do</span></a>
 <a class="sourceLine" id="cb40-3" title="3">  pos <span class="ot">&lt;-</span> getPosition</a>
 <a class="sourceLine" id="cb40-4" title="4">  <span class="fu">exp</span> <span class="ot">&lt;-</span> parseExpr pos s</a>
 <a class="sourceLine" id="cb40-5" title="5">  dataToPatQ (<span class="fu">const</span> <span class="dt">Nothing</span>) <span class="fu">exp</span></a></code></pre></div>
-<p>The <code>const Nothing</code> is a placeholder for extensions to the standard <code>Data</code> to <code>Pat</code> translation:</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb41-1" title="1">quoteExprExp s <span class="ot">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb41-2" title="2">  pos <span class="ot">&lt;-</span> getPosition</a>
-<a class="sourceLine" id="cb41-3" title="3">  <span class="fu">exp</span> <span class="ot">&lt;-</span> parseExpr pos s</a>
-<a class="sourceLine" id="cb41-4" title="4">  dataToExpQ (<span class="fu">const</span> <span class="dt">Nothing</span>  <span class="ot">`extQ`</span> antiExprExp) <span class="fu">exp</span></a></code></pre></div>
+<p>The <code>(const Nothing)</code> is a placeholder for extensions to the standard <code>Data</code> to <code>Pat</code> translation:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb41-1" title="1"><span class="ot">quoteExprPat ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Q</span> <span class="dt">Pat</span></a>
+<a class="sourceLine" id="cb41-2" title="2">quoteExprPat s <span class="ot">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb41-3" title="3">  pos <span class="ot">&lt;-</span> getPosition</a>
+<a class="sourceLine" id="cb41-4" title="4">  <span class="fu">exp</span> <span class="ot">&lt;-</span> Expr.parseExpr pos s</a>
+<a class="sourceLine" id="cb41-5" title="5">  dataToPatQ (<span class="fu">const</span> <span class="dt">Nothing</span> <span class="ot">`extQ`</span> antiExprPat) <span class="fu">exp</span></a></code></pre></div>
+<p>What are the “extensions”?</p>
 </div>
-<div id="whats-function-extension" class="slide section level1">
-<h1>What’s function extension?</h1>
+<div id="whats-a-function-extension" class="slide section level1">
+<h1>What’s a function extension?</h1>
 <p>You have</p>
 <ul>
-<li>a generic query</li>
+<li>a generic function, say</li>
 </ul>
 <pre><code>gen :: Data a =&gt; a -&gt; R</code></pre>
 <ul>
-<li>a type-specific query</li>
+<li>a type-specific function, say</li>
 </ul>
 <pre><code>spec :: T -&gt; R</code></pre>
-<p>You want a generic function which behaves like spec on values of type T, and like gen on all other values</p>
-<pre><code>gen `extQ` spec :: Data a =&gt; a -&gt; R</code></pre>
+<p>You want a generic function which behaves like spec on values of type T, and like gen on all other values.</p>
+<p>The function <code>extQ</code> does just that.</p>
+<pre><code>extQ :: (Typeable a, Typeable b) =&gt; (a -&gt; r) -&gt; (t -&gt; r) -&gt; a -&gt; r
+
+gen `extQ` spec :: Data a =&gt; a -&gt; R  -- Data is a subclass of Typeable</code></pre>
+<p>(NB <code>extQ</code> comes from <code>Data.Generics</code> and the <code>Q</code> in the name has nothing to do with Template Haskell <code>Q</code> monad)</p>
+</div>
+<div id="extending-datatopatq" class="slide section level1">
+<h1>Extending <code>dataToPatQ</code></h1>
+<pre><code>const Nothing :: b -&gt; Maybe (Q Pat)
+
+extQ :: (Data a, Data t) =&gt; (a -&gt; r) -&gt; (t -&gt; r) -&gt; a -&gt; r
+-- specialized to Data
+
+antiExprPat :: Expr -&gt; Maybe (Q Pat)
+
+const Nothing `extQ` antiExprPat :: forall b.Data b =&gt; b -&gt; Maybe (Q Pat)
+
+dataToPatQ
+  :: Data a =&gt;
+     (forall b.Data b =&gt; b -&gt; Maybe (Q Pat)) -&gt; a -&gt; Q Pat
+-- specialized To Expr
+-- :: (forall b.Data b =&gt; b -&gt; Maybe (Q Pat)) -&gt; Expr -&gt; Q Pat
+
+dataToPatQ (const Nothing `extQ` antiExprPat) :: Expr -&gt; Q Pat</code></pre>
 </div>
 <div id="metavariables" class="slide section level1">
 <h1>Metavariables</h1>
 <p>Let us extend our expression syntax and parser with metavariables (variables from the metalanguage):</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb45-1" title="1"><span class="kw">data</span> <span class="dt">Exp</span> <span class="ot">=</span>  <span class="op">...</span> <span class="op">|</span> <span class="dt">EMetaVar</span> <span class="dt">String</span></a>
-<a class="sourceLine" id="cb45-2" title="2">           <span class="kw">deriving</span>(<span class="dt">Show</span>,<span class="dt">Typeable</span>,<span class="dt">Data</span>)</a>
-<a class="sourceLine" id="cb45-3" title="3"></a>
-<a class="sourceLine" id="cb45-4" title="4"><span class="ot">pExp ::</span> <span class="dt">Parser</span> <span class="dt">Exp</span></a>
-<a class="sourceLine" id="cb45-5" title="5">pExp <span class="ot">=</span> pTerm <span class="ot">`chainl1`</span> spaced addop</a>
-<a class="sourceLine" id="cb45-6" title="6"></a>
-<a class="sourceLine" id="cb45-7" title="7">pTerm <span class="ot">=</span> spaced pFactor <span class="ot">`chainl1`</span> spaced mulop</a>
-<a class="sourceLine" id="cb45-8" title="8">pFactor <span class="ot">=</span> pNum <span class="op">&lt;|&gt;</span> pMetaVar</a>
-<a class="sourceLine" id="cb45-9" title="9"></a>
-<a class="sourceLine" id="cb45-10" title="10">pMetaVar <span class="ot">=</span> char <span class="ch">&#39;$&#39;</span> <span class="op">&gt;&gt;</span> <span class="dt">EMetaVar</span> <span class="op">&lt;$&gt;</span> ident</a>
-<a class="sourceLine" id="cb45-11" title="11"></a>
-<a class="sourceLine" id="cb45-12" title="12">test1 <span class="ot">=</span> parse pExp <span class="st">&quot;test1&quot;</span> <span class="st">&quot;1 - 2 - 3 * 4 &quot;</span></a>
-<a class="sourceLine" id="cb45-13" title="13">test2 <span class="ot">=</span> parse pExp <span class="st">&quot;test2&quot;</span> <span class="st">&quot;$x - $y*$z&quot;</span></a></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb46-1" title="1"><span class="kw">data</span> <span class="dt">Expr</span> <span class="ot">=</span>  <span class="op">...</span> <span class="op">|</span> <span class="dt">EMetaVar</span> <span class="dt">String</span></a>
+<a class="sourceLine" id="cb46-2" title="2">           <span class="kw">deriving</span>(<span class="dt">Show</span>,<span class="dt">Typeable</span>,<span class="dt">Data</span>)</a>
+<a class="sourceLine" id="cb46-3" title="3"></a>
+<a class="sourceLine" id="cb46-4" title="4"><span class="ot">pExpr ::</span> <span class="dt">Parser</span> <span class="dt">Expr</span></a>
+<a class="sourceLine" id="cb46-5" title="5">pExpr <span class="ot">=</span> pTerm <span class="ot">`chainl1`</span> spaced addop</a>
+<a class="sourceLine" id="cb46-6" title="6"></a>
+<a class="sourceLine" id="cb46-7" title="7">pTerm <span class="ot">=</span> spaced pFactor <span class="ot">`chainl1`</span> spaced mulop</a>
+<a class="sourceLine" id="cb46-8" title="8">pFactor <span class="ot">=</span> pNum <span class="op">&lt;|&gt;</span> pMetaVar</a>
+<a class="sourceLine" id="cb46-9" title="9"></a>
+<a class="sourceLine" id="cb46-10" title="10">pMetaVar <span class="ot">=</span> char <span class="ch">&#39;$&#39;</span> <span class="op">&gt;&gt;</span> <span class="dt">EMetaVar</span> <span class="op">&lt;$&gt;</span> ident</a>
+<a class="sourceLine" id="cb46-11" title="11"></a>
+<a class="sourceLine" id="cb46-12" title="12">test1 <span class="ot">=</span> parse pExpr <span class="st">&quot;test1&quot;</span> <span class="st">&quot;1 - 2 - 3 * 4 &quot;</span></a>
+<a class="sourceLine" id="cb46-13" title="13">test2 <span class="ot">=</span> parse pExpr <span class="st">&quot;test2&quot;</span> <span class="st">&quot;$x - $y*$z&quot;</span></a></code></pre></div>
+</div>
+<div id="antiquoting-metavariables" class="slide section level1">
+<h1>Antiquoting metavariables</h1>
 <p>The antiquoter is defined as an extension for the <code>dataToPatQ</code>:</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb46-1" title="1"><span class="ot">antiExprPat ::</span> <span class="dt">Exp</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">TH.Q</span> <span class="dt">TH.Pat</span>)</a>
-<a class="sourceLine" id="cb46-2" title="2">antiExprPat (<span class="dt">EMetaVar</span> v) <span class="ot">=</span> <span class="dt">Just</span> <span class="op">$</span> TH.varP (TH.mkName v)</a>
-<a class="sourceLine" id="cb46-3" title="3">antiExprPat _ <span class="ot">=</span> <span class="dt">Nothing</span></a></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb47-1" title="1"><span class="ot">antiExprPat ::</span> <span class="dt">Expr</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">Q</span> <span class="dt">Pat</span>)</a>
+<a class="sourceLine" id="cb47-2" title="2">antiExprPat (<span class="dt">EMetaVar</span> v) <span class="ot">=</span> <span class="dt">Just</span> <span class="op">$</span> varP (mkName v)</a>
+<a class="sourceLine" id="cb47-3" title="3">antiExprPat _ <span class="ot">=</span> <span class="dt">Nothing</span></a></code></pre></div>
 <ul>
 <li>metavariables are translated to <code>Just</code> TH variables</li>
 <li>for all the other cases we say <code>Nothing</code> - allowing <code>dataToPatQ</code> use its default rules</li>
 </ul>
 <p>And that’s it! Now we can write</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb47-1" title="1">eval [expr| $a + $b|] <span class="ot">=</span> eval a <span class="op">+</span> eval b</a>
-<a class="sourceLine" id="cb47-2" title="2">eval [expr| $a * $b|] <span class="ot">=</span> eval a <span class="op">*</span> eval b</a>
-<a class="sourceLine" id="cb47-3" title="3">eval (<span class="dt">EInt</span> n) <span class="ot">=</span> n</a></code></pre></div>
-<h2 id="exercises">Exercises</h2>
+<div class="sourceCode" id="cb48"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb48-1" title="1">eval [expr| $a + $b|] <span class="ot">=</span> eval a <span class="op">+</span> eval b</a>
+<a class="sourceLine" id="cb48-2" title="2">eval [expr| $a * $b|] <span class="ot">=</span> eval a <span class="op">*</span> eval b</a>
+<a class="sourceLine" id="cb48-3" title="3">eval (<span class="dt">EInt</span> n) <span class="ot">=</span> n</a></code></pre></div>
+</div>
+<div id="exercises" class="slide section level1">
+<h1>Exercises</h1>
 <ul>
 <li><p>Extend the expression simplifier with more rules.</p></li>
 <li><p>Add antiquotation to <code>quoteExprExp</code></p></li>
