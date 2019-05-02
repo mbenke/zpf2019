@@ -719,8 +719,12 @@ eval (EInt n) = n
 
 # Exercises
 
+* Write a function such that build_ps n generates all projections for n-tuples,
+* Write a function `tupleFromList` such that
+```
+$(tupleFromList 8) [1..8] == (1,2,3,4,5,6,7,8)
+```
 * Extend the expression simplifier with more rules.
-
 * Add antiquotation to `quoteExprExp`
 
 * Extend the expression quasiquoter to handle metavariables for
@@ -729,8 +733,21 @@ eval (EInt n) = n
 ```
 simpl [expr|$int:n$ + $int:m$|] = [expr| $int:m+n$ |]
 ```
-
 (you are welcome to invent your own syntax in place of `$int: ... $`)
+
+* write a `matrix` quasiquoter such that
+
+```
+*MatrixSplice> :{
+*MatrixSplice| [matrix|
+*MatrixSplice| 1 2
+*MatrixSplice| 3 4
+*MatrixSplice| |]
+*MatrixSplice| :}
+[[1,2],[3,4]]
+```
+
+be careful with blank lines!
 
 # Term projects
 

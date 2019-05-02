@@ -618,12 +618,28 @@ dataToPatQ (const Nothing `extQ` antiExprPat) :: Expr -&gt; Q Pat</code></pre>
 <div id="exercises" class="slide section level1">
 <h1>Exercises</h1>
 <ul>
+<li>Write a function such that build_ps n generates all projections for n-tuples,</li>
+<li>Write a function <code>tupleFromList</code> such that</li>
+</ul>
+<pre><code>$(tupleFromList 8) [1..8] == (1,2,3,4,5,6,7,8)</code></pre>
+<ul>
 <li><p>Extend the expression simplifier with more rules.</p></li>
 <li><p>Add antiquotation to <code>quoteExprExp</code></p></li>
 <li><p>Extend the expression quasiquoter to handle metavariables for numeric constants, allowing to implement simplification rules like</p></li>
 </ul>
 <pre><code>simpl [expr|$int:n$ + $int:m$|] = [expr| $int:m+n$ |]</code></pre>
 <p>(you are welcome to invent your own syntax in place of <code>$int: ... $</code>)</p>
+<ul>
+<li>write a <code>matrix</code> quasiquoter such that</li>
+</ul>
+<pre><code>*MatrixSplice&gt; :{
+*MatrixSplice| [matrix|
+*MatrixSplice| 1 2
+*MatrixSplice| 3 4
+*MatrixSplice| |]
+*MatrixSplice| :}
+[[1,2],[3,4]]</code></pre>
+<p>be careful with blank lines!</p>
 </div>
 <div id="term-projects" class="slide section level1">
 <h1>Term projects</h1>
