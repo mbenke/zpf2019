@@ -8,20 +8,21 @@ import Language.Haskell.TH.Quote
 import Expr2
 
 expr  :: QuasiQuoter
-expr  =  QuasiQuoter 
+expr  =  QuasiQuoter
   { quoteExp = quoteExprExp
   , quotePat = quoteExprPat
   , quoteDec = undefined
   , quoteType = undefined
   }
 
+quoteExprExp :: String -> TH.Q TH.Exp
 quoteExprExp s = do
   pos <- getPosition
   exp <- parseExp pos s
   dataToExpQ (const Nothing  `extQ` antiExprExp) exp
 
 -- dataToExpQ :: Data a => (forall b. Data b => b -> Maybe (Q Exp)) -> a -> Q Exp
-
+quoteExprPat :: String -> TH.Q TH.Pat
 quoteExprPat s = do
   pos <- getPosition
   exp <- parseExp pos s
@@ -39,4 +40,3 @@ getPosition = fmap transPos TH.location where
   transPos loc = (TH.loc_filename loc,
                   fst (TH.loc_start loc),
                   snd (TH.loc_start loc))
-                 

@@ -15,6 +15,7 @@ expr  =  QuasiQuoter
   , quoteType = undefined
   }
 
+quoteExprExp :: String -> TH.Q TH.Exp
 quoteExprExp s = do
   pos <- getPosition
   exp <- parseExp pos s
