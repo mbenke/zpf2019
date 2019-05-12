@@ -1,0 +1,39 @@
+name: marlow-examples
+
+dependencies:
+  - base
+  - HTTP
+  - network-uri
+  - parallel
+  - array
+  - deepseq
+  - bytestring
+
+executables:
+  sudoku1:
+    main: sudoku1.hs
+    other-modules: Sudoku
+  sudoku2:
+    main: sudoku2.hs
+    other-modules: Sudoku
+  sudoku2b:
+    main: sudoku2b.hs
+    other-modules: Sudoku
+  sudoku3:
+    other-modules: Sudoku
+    main: sudoku3.hs
+  sudoku3b:
+    other-modules: Sudoku
+    main: sudoku3b.hs
+  sudoku4:
+    other-modules: Sudoku
+    main: sudoku4.hs
+  fork:
+    main: fork.hs
+    other-modules: GetURL
+  geturls1:
+    other-modules: GetURL
+    main: geturls1.hs
+  geturls2:
+    other-modules: GetURL
+    main: geturls2.hs
