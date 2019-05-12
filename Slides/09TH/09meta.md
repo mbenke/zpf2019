@@ -2,7 +2,7 @@
 title: Advanced Functional Programming
 subtitle: Template Haskell
 author:  Marcin Benke
-date: May 14, 2019
+date: May 7, 2019
 ---
 
 # Metaprogramming - Template Haskell
