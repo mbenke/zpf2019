@@ -15,4 +15,4 @@ clean:
 	-rm -f *.hi *.o *.dyn_hi *.dyn_o
 
 distclean: clean
-	$(BINFILES)
+	-rm -f $(BINFILES)
