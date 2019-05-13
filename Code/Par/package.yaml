@@ -1,0 +1,13 @@
+name: zpf-par
+
+dependencies:
+  - base
+  - parallel
+
+executables:
+  parfib:
+    main: parfib.hs
+  badfib2:
+    main: parfib2.hs
+  badfib:
+    main: badfib.hs
