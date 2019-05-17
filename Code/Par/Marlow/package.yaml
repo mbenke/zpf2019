@@ -8,6 +8,7 @@ dependencies:
   - array
   - deepseq
   - bytestring
+  - time
 
 executables:
   sudoku1:
@@ -32,7 +33,9 @@ executables:
     main: fork.hs
     other-modules: GetURL
   geturls:
-    other-modules: GetURL
+    other-modules:
+     - GetURL
+     - TimeIt
     main: geturls.hs
   geturls1:
     other-modules: GetURL
