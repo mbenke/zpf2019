@@ -38,7 +38,18 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
-# extra-deps: []
+extra-deps:
+ - cairo-0.13.6.0@sha256:a9122d48957a2dbb5a177e5068b850efa1e99bb22c68eb2571165c3c945a8dd6
+ - ghc-events-0.8.0.2@sha256:3b591d15e8fab7426d9a9c2a0086872ee10232d78646d82705e0f2eea64df74c
+ - glib-0.13.7.0@sha256:25f62eb48d104342537dd1c724f07355d56226ca595ce6f1848415fbb7f59fa7
+ - gtk-0.14.10@sha256:3ab0b91fa36e3a8bc6fba38d8b08b8b36fc34c5b3ac4a6bb844e9997b5b8bcc0
+ - pango-0.13.6.0@sha256:ed8d300945bea97ccb652efc73d159634aefebff8c64f60eef6b6ac5ecebc4ae
+ - template-haskell-2.13.0.0@sha256:555df4a4f47d358ce35f4c0f4371aa4347081fd00288e751838141d6fc7de627
+ - Cabal-2.2.0.1@sha256:2a80d8fb655474f0eaeb20434c47f64f84e6302e55973056f00df8ca050b9683
+ - gio-0.13.6.0@sha256:00fce1b49c902ba82433cc018fb5d4651797464342a9cbc66df2c62bb8884650
+ - gtk2hs-buildtools-0.13.5.0@sha256:a765766c4208a3e4def319ebf280fbb9e7d0a3f28d15922db36970404fb1daee
+ - containers-0.5.11.0@sha256:28ad7337057442f75bc689315ab4ec7bdf5e6b2c39668f306672cecd82c02798
+
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
@@ -63,3 +74,4 @@ packages:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
+allow-newer: true

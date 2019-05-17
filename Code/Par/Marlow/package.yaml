@@ -31,6 +31,9 @@ executables:
   fork:
     main: fork.hs
     other-modules: GetURL
+  geturls:
+    other-modules: GetURL
+    main: geturls.hs
   geturls1:
     other-modules: GetURL
     main: geturls1.hs
