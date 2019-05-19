@@ -1,0 +1,21 @@
+name: zpf-concur
+
+dependencies:
+  - base
+  - stm
+
+executables:
+  stm1:
+    main: stm1.hs
+  delay:
+    main: delay.hs
+  IORef0:
+    main: IORef0.hs
+  IORef1:
+    main: IORef1.hs
+  IORef2:
+    main: IORef2.hs
+  IORef3:
+    main: IORef3.hs
+  IORef4:
+    main: IORef4.hs
