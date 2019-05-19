@@ -34,9 +34,10 @@ wait (Async var) = readMVar var
 
 sites = ["http://www.google.com",
          "http://www.bing.com",
-         "http://www.yahoo.com",
-         "http://www.wikipedia.com/wiki/Spade",
-         "http://www.wikipedia.com/wiki/Shovel"]
+         "http://www.ellatha.com",
+         "http://evemaps.dotlan.net/map/Domain",
+         "http://evemaps.dotlan.net/map/Lonetrek"
+        ]
 
 main = mapM (async.http) sites >>= mapM wait
  where

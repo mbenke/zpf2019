@@ -9,6 +9,8 @@ dependencies:
   - deepseq
   - bytestring
   - time
+#  - http-client
+#  - http-client-tls
 
 executables:
   sudoku1:

@@ -14,9 +14,9 @@ wait :: Async a -> IO a
 wait (Async var) = readMVar var
 
 main = do
-  m1 <- async $ getURL "http://www.wikipedia.com/wiki/Shovel"
-  m2 <- async $ getURL "http://www.wikipedia.com/wiki/Spade"
+  m1 <- async $ getURL "http://evemaps.dotlan.net/map/Domain"
+  m2 <- async $ getURL "http://evemaps.dotlan.net/map/Lonetrek"
   wait m1
-  print "1 DONE"  
+  print "1 DONE"
   wait m2
   print "2 DONE"
