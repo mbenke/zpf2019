@@ -345,7 +345,7 @@ transfer from to amount = atomically $ do
 
 * Atomicity: results of `atomically` are visible to other threads as a whole
 
-* Isolation: during `atomically act`, no interferencs from other threads
+* Isolation: during `atomically act`, no interference from other threads
 
 # GIL?
 
