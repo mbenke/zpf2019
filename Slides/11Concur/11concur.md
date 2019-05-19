@@ -78,11 +78,11 @@ main = do
   m1 <- newEmptyMVar
   m2 <- newEmptyMVar
   forkIO $ do
-    r <- getURL "http://www.wikipedia.com/wiki/Shovel"
+    r <- getURL "http://evemaps.dotlan.net/map/Domain"
     putMVar m1 r
 
   forkIO $ do
-    r <- getURL "http://www.wikipedia.com/wiki/Spade"
+    r <- getURL "http://evemaps.dotlan.net/map/Lonetrek"
     putMVar m2 r
 
   r1 <- takeMVar m1
@@ -115,8 +115,8 @@ wait :: Async a -> IO a
 wait (Async var) = readMVar var
 
 main = do
-  m1 <- async $ getURL "http://www.wikipedia.com/wiki/Shovel"
-  m2 <- async $ getURL "http://www.wikipedia.com/wiki/Spade"
+  m1 <- async $ getURL "http://evemaps.dotlan.net/map/Domain"
+  m2 <- async $ getURL "http://evemaps.dotlan.net/map/Lonetrek"
   wait m1
   print "1 DONE"
   wait m2
@@ -131,10 +131,11 @@ import Text.Printf
 import qualified Data.ByteString as B
 -- ...
 sites = ["http://www.google.com",
-         "http://haskell.org",
-         "http://www.yahoo.com",
-         "http://www.wikipedia.com/wiki/Spade",
-         "http://www.wikipedia.com/wiki/Shovel"]
+         "http://www.bing.com",
+         "http://www.ellatha.com",
+         "http://evemaps.dotlan.net/map/Domain",
+         "http://evemaps.dotlan.net/map/Lonetrek"
+        ]
 
 main = mapM (async.http) sites >>= mapM_ wait
  where
@@ -145,11 +146,11 @@ main = mapM (async.http) sites >>= mapM_ wait
 
 ~~~~
 $ ./geturls
-downloaded: http://www.google.com (11369 bytes, 0.008s)
-downloaded: http://haskell.org (21921 bytes, 0.012s)
-downloaded: http://www.wikipedia.com/wiki/Spade (69631 bytes, 0.012s)
-downloaded: http://www.wikipedia.com/wiki/Shovel (82803 bytes, 0.012s)
-downloaded: http://www.yahoo.com (79788 bytes, 0.020s)
+downloaded: http://www.google.com (11827 bytes, 0.38s)
+downloaded: http://evemaps.dotlan.net/map/Domain (20668 bytes, 0.41s)
+downloaded: http://evemaps.dotlan.net/map/Lonetrek (20702 bytes, 0.49s)
+downloaded: http://www.bing.com (90526 bytes, 0.85s)
+downloaded: http://www.ellatha.com (56521 bytes, 1.42s)
 ~~~~
 
 <!-- Why are results in different order than queries? `mapM` is sequential? -->

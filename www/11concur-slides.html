@@ -138,11 +138,11 @@ BABABABABABABABABABABABABABABABABABABABABABBBBBBBBBBBB</code></pre>
 <a class="sourceLine" id="cb4-7" title="7">  m1 <span class="ot">&lt;-</span> newEmptyMVar</a>
 <a class="sourceLine" id="cb4-8" title="8">  m2 <span class="ot">&lt;-</span> newEmptyMVar</a>
 <a class="sourceLine" id="cb4-9" title="9">  forkIO <span class="op">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-10" title="10">    r <span class="ot">&lt;-</span> getURL <span class="st">&quot;http://www.wikipedia.com/wiki/Shovel&quot;</span></a>
+<a class="sourceLine" id="cb4-10" title="10">    r <span class="ot">&lt;-</span> getURL <span class="st">&quot;http://evemaps.dotlan.net/map/Domain&quot;</span></a>
 <a class="sourceLine" id="cb4-11" title="11">    putMVar m1 r</a>
 <a class="sourceLine" id="cb4-12" title="12"></a>
 <a class="sourceLine" id="cb4-13" title="13">  forkIO <span class="op">$</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb4-14" title="14">    r <span class="ot">&lt;-</span> getURL <span class="st">&quot;http://www.wikipedia.com/wiki/Spade&quot;</span></a>
+<a class="sourceLine" id="cb4-14" title="14">    r <span class="ot">&lt;-</span> getURL <span class="st">&quot;http://evemaps.dotlan.net/map/Lonetrek&quot;</span></a>
 <a class="sourceLine" id="cb4-15" title="15">    putMVar m2 r</a>
 <a class="sourceLine" id="cb4-16" title="16"></a>
 <a class="sourceLine" id="cb4-17" title="17">  r1 <span class="ot">&lt;-</span> takeMVar m1</a>
@@ -169,8 +169,8 @@ START 1
 <a class="sourceLine" id="cb6-10" title="10">wait (<span class="dt">Async</span> var) <span class="ot">=</span> readMVar var</a>
 <a class="sourceLine" id="cb6-11" title="11"></a>
 <a class="sourceLine" id="cb6-12" title="12">main <span class="ot">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb6-13" title="13">  m1 <span class="ot">&lt;-</span> async <span class="op">$</span> getURL <span class="st">&quot;http://www.wikipedia.com/wiki/Shovel&quot;</span></a>
-<a class="sourceLine" id="cb6-14" title="14">  m2 <span class="ot">&lt;-</span> async <span class="op">$</span> getURL <span class="st">&quot;http://www.wikipedia.com/wiki/Spade&quot;</span></a>
+<a class="sourceLine" id="cb6-13" title="13">  m1 <span class="ot">&lt;-</span> async <span class="op">$</span> getURL <span class="st">&quot;http://evemaps.dotlan.net/map/Domain&quot;</span></a>
+<a class="sourceLine" id="cb6-14" title="14">  m2 <span class="ot">&lt;-</span> async <span class="op">$</span> getURL <span class="st">&quot;http://evemaps.dotlan.net/map/Lonetrek&quot;</span></a>
 <a class="sourceLine" id="cb6-15" title="15">  wait m1</a>
 <a class="sourceLine" id="cb6-16" title="16">  <span class="fu">print</span> <span class="st">&quot;1 DONE&quot;</span></a>
 <a class="sourceLine" id="cb6-17" title="17">  wait m2</a>
@@ -183,22 +183,23 @@ START 1
 <a class="sourceLine" id="cb7-3" title="3"><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString</span> <span class="kw">as</span> <span class="dt">B</span></a>
 <a class="sourceLine" id="cb7-4" title="4"><span class="co">-- ...</span></a>
 <a class="sourceLine" id="cb7-5" title="5">sites <span class="ot">=</span> [<span class="st">&quot;http://www.google.com&quot;</span>,</a>
-<a class="sourceLine" id="cb7-6" title="6">         <span class="st">&quot;http://haskell.org&quot;</span>,</a>
-<a class="sourceLine" id="cb7-7" title="7">         <span class="st">&quot;http://www.yahoo.com&quot;</span>,</a>
-<a class="sourceLine" id="cb7-8" title="8">         <span class="st">&quot;http://www.wikipedia.com/wiki/Spade&quot;</span>,</a>
-<a class="sourceLine" id="cb7-9" title="9">         <span class="st">&quot;http://www.wikipedia.com/wiki/Shovel&quot;</span>]</a>
-<a class="sourceLine" id="cb7-10" title="10"></a>
-<a class="sourceLine" id="cb7-11" title="11">main <span class="ot">=</span> <span class="fu">mapM</span> (async<span class="op">.</span>http) sites <span class="op">&gt;&gt;=</span> <span class="fu">mapM_</span> wait</a>
-<a class="sourceLine" id="cb7-12" title="12"> <span class="kw">where</span></a>
-<a class="sourceLine" id="cb7-13" title="13">   http url <span class="ot">=</span> <span class="kw">do</span></a>
-<a class="sourceLine" id="cb7-14" title="14">     (page, time) <span class="ot">&lt;-</span> timeit <span class="op">$</span> getURL url</a>
-<a class="sourceLine" id="cb7-15" title="15">     printf <span class="st">&quot;downloaded: %s (%d bytes, %.3fs)\n&quot;</span> url (B.length page) time</a></code></pre></div>
+<a class="sourceLine" id="cb7-6" title="6">         <span class="st">&quot;http://www.bing.com&quot;</span>,</a>
+<a class="sourceLine" id="cb7-7" title="7">         <span class="st">&quot;http://www.ellatha.com&quot;</span>,</a>
+<a class="sourceLine" id="cb7-8" title="8">         <span class="st">&quot;http://evemaps.dotlan.net/map/Domain&quot;</span>,</a>
+<a class="sourceLine" id="cb7-9" title="9">         <span class="st">&quot;http://evemaps.dotlan.net/map/Lonetrek&quot;</span></a>
+<a class="sourceLine" id="cb7-10" title="10">        ]</a>
+<a class="sourceLine" id="cb7-11" title="11"></a>
+<a class="sourceLine" id="cb7-12" title="12">main <span class="ot">=</span> <span class="fu">mapM</span> (async<span class="op">.</span>http) sites <span class="op">&gt;&gt;=</span> <span class="fu">mapM_</span> wait</a>
+<a class="sourceLine" id="cb7-13" title="13"> <span class="kw">where</span></a>
+<a class="sourceLine" id="cb7-14" title="14">   http url <span class="ot">=</span> <span class="kw">do</span></a>
+<a class="sourceLine" id="cb7-15" title="15">     (page, time) <span class="ot">&lt;-</span> timeit <span class="op">$</span> getURL url</a>
+<a class="sourceLine" id="cb7-16" title="16">     printf <span class="st">&quot;downloaded: %s (%d bytes, %.3fs)\n&quot;</span> url (B.length page) time</a></code></pre></div>
 <pre><code>$ ./geturls
-downloaded: http://www.google.com (11369 bytes, 0.008s)
-downloaded: http://haskell.org (21921 bytes, 0.012s)
-downloaded: http://www.wikipedia.com/wiki/Spade (69631 bytes, 0.012s)
-downloaded: http://www.wikipedia.com/wiki/Shovel (82803 bytes, 0.012s)
-downloaded: http://www.yahoo.com (79788 bytes, 0.020s)</code></pre>
+downloaded: http://www.google.com (11827 bytes, 0.38s)
+downloaded: http://evemaps.dotlan.net/map/Domain (20668 bytes, 0.41s)
+downloaded: http://evemaps.dotlan.net/map/Lonetrek (20702 bytes, 0.49s)
+downloaded: http://www.bing.com (90526 bytes, 0.85s)
+downloaded: http://www.ellatha.com (56521 bytes, 1.42s)</code></pre>
 <!-- Why are results in different order than queries? `mapM` is sequential? -->
 </div>
 <div id="ioref" class="slide section level1">
