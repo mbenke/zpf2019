@@ -75,3 +75,5 @@ extra-deps:
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
 allow-newer: true
+ghc-options:
+   "$targets": -rtsopts -threaded
