@@ -475,8 +475,10 @@ delay n = delay $! n-1
 <p>1: create two new <code>IVar</code>s to hold the results</p>
 <p>2: fork two independent <code>Par</code> computations</p>
 <p>3: wait for the results</p>
-<pre><code> ./parmonad 34 35 +RTS -N2
-24157817</code></pre>
+<pre><code>./parmonad 34 35 +RTS -N2 -s
+  Total   time    1.750s  (  1.096s elapsed)
+./parmonad 34 35 +RTS -N1 -s
+  Total   time    1.745s  (  1.779s elapsed)</code></pre>
 <h1 id="caution">Caution</h1>
 <p>There is nothing in the types to stop you from returning an <code>IVar</code> from <code>runPar</code> and passing it to another call of <code>runPar</code>.</p>
 <p><strong>This is a Very Bad Idea; don’t do it.</strong></p>
@@ -549,7 +551,10 @@ delay n = delay $! n-1
 <a class="sourceLine" id="cb43-14" title="14">    grids <span class="ot">&lt;-</span> <span class="fu">fmap</span> <span class="fu">lines</span> <span class="op">$</span> <span class="fu">readFile</span> f</a>
 <a class="sourceLine" id="cb43-15" title="15">    <span class="fu">print</span> (<span class="fu">length</span> (<span class="fu">filter</span> isJust (runPar <span class="op">$</span> parMap solve grids)))</a>
 <a class="sourceLine" id="cb43-16" title="16"></a>
-<a class="sourceLine" id="cb43-17" title="17"><span class="co">-- Productivity  95.8% of total user, 173.1% of total elapsed</span></a></code></pre></div>
+<a class="sourceLine" id="cb43-17" title="17"><span class="co">-- sudoku-par3 +RTS -s  -N1 -RTS ../Marlow/sudoku17.1000.txt</span></a>
+<a class="sourceLine" id="cb43-18" title="18"><span class="co">--   Total   time    1.536s  (  1.577s elapsed)</span></a>
+<a class="sourceLine" id="cb43-19" title="19"><span class="co">-- sudoku-par3 +RTS -s  -N2 -RTS ../Marlow/sudoku17.1000.txt</span></a>
+<a class="sourceLine" id="cb43-20" title="20"><span class="co">--   Total   time    1.603s  (  0.825s elapsed)</span></a></code></pre></div>
 <h1 id="exercise-more-nqueens-variants">Exercise: more <code>nqueens</code> variants</h1>
 <p>Rewrite <code>nqueens</code> from last week (using <code>Eval</code>) to use <code>Par</code></p>
 <p>Ditto with <code>forkIO+MVar</code></p>

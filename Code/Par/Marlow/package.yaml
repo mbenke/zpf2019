@@ -35,6 +35,10 @@ executables:
     other-modules: Sudoku
     main: sudoku-par2.hs
     dependencies: monad-par
+  sudoku-par3:
+    other-modules: Sudoku
+    main: sudoku-par3.hs
+    dependencies: monad-par
 
   fork:
     main: fork.hs

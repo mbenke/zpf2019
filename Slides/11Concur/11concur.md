@@ -605,8 +605,10 @@ get :: IVar a -> Par a
 3: wait for the results
 
 ```
- ./parmonad 34 35 +RTS -N2
-24157817
+./parmonad 34 35 +RTS -N2 -s
+  Total   time    1.750s  (  1.096s elapsed)
+./parmonad 34 35 +RTS -N1 -s
+  Total   time    1.745s  (  1.779s elapsed)
 ```
 
 # Caution
@@ -714,7 +716,10 @@ main = do
     grids <- fmap lines $ readFile f
     print (length (filter isJust (runPar $ parMap solve grids)))
 
--- Productivity  95.8% of total user, 173.1% of total elapsed
+-- sudoku-par3 +RTS -s  -N1 -RTS ../Marlow/sudoku17.1000.txt
+--   Total   time    1.536s  (  1.577s elapsed)
+-- sudoku-par3 +RTS -s  -N2 -RTS ../Marlow/sudoku17.1000.txt
+--   Total   time    1.603s  (  0.825s elapsed)
 ~~~~
 
 # Exercise: more `nqueens` variants
