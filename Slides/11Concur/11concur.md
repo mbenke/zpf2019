@@ -437,7 +437,7 @@ delay 0 = 0
 delay n = delay $! n-1
 
 ```
-See also 'Control.Concurrent.STM.Delay'
+See also `Control.Concurrent.STM.Delay`
 
 # Exercise
 
@@ -667,7 +667,7 @@ main = print $ runNetwork 2
 
 
 ```
-$ ./Par1
+$ ./parnetwork
 (6,9)
 ```
 

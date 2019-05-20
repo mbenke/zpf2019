@@ -372,7 +372,7 @@ delay :: Integer -&gt; Integer
 delay 0 = 0
 delay n = delay $! n-1
 </code></pre>
-<p>See also ‘Control.Concurrent.STM.Delay’</p>
+<p>See also <code>Control.Concurrent.STM.Delay</code></p>
 <h1 id="exercise">Exercise</h1>
 <p>Implement <code>withdraw</code>, <code>deposit</code> using STM</p>
 <h1 id="blocking-retry">Blocking: <code>retry</code></h1>
@@ -510,7 +510,7 @@ delay n = delay $! n-1
 <a class="sourceLine" id="cb40-20" title="20">h x <span class="ot">=</span> x<span class="op">*</span>x</a>
 <a class="sourceLine" id="cb40-21" title="21">j <span class="ot">=</span> (,)</a>
 <a class="sourceLine" id="cb40-22" title="22">main <span class="ot">=</span> <span class="fu">print</span> <span class="op">$</span> runNetwork <span class="dv">2</span></a></code></pre></div>
-<pre><code>$ ./Par1
+<pre><code>$ ./parnetwork
 (6,9)</code></pre>
 <h1 id="sudoku-using-par">Sudoku using <code>Par</code></h1>
 <div class="sourceCode" id="cb42"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb42-1" title="1">main <span class="ot">=</span> <span class="kw">do</span></a>

@@ -22,3 +22,5 @@ executables:
     main: IORef4.hs
   parmonad:
     main: parmonad.hs
+  parnetwork:
+    main: parnetwork.hs
