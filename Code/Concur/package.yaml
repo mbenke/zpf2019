@@ -3,6 +3,7 @@ name: zpf-concur
 dependencies:
   - base
   - stm
+  - monad-par
 
 executables:
   stm1:
@@ -19,3 +20,5 @@ executables:
     main: IORef3.hs
   IORef4:
     main: IORef4.hs
+  parmonad:
+    main: parmonad.hs
