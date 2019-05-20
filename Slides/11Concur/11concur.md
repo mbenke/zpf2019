@@ -689,7 +689,10 @@ main = do
        bs' <- get i2
        return (as' ++ bs')
 
---   Productivity  96.3% of total user, 141.2% of total elapsed
+-- sudoku-par2 +RTS -s  -N1 -RTS ../Marlow/sudoku17.1000.txt
+--  Total   time    1.528s  (  1.555s elapsed)
+-- sudoku-par2 +RTS -s  -N2 -RTS ../Marlow/sudoku17.1000.txt
+--  Total   time    1.600s  (  0.998s elapsed)
 ~~~~
 
 # parMap

@@ -31,6 +31,11 @@ executables:
   sudoku4:
     other-modules: Sudoku
     main: sudoku4.hs
+  sudoku-par2:
+    other-modules: Sudoku
+    main: sudoku-par2.hs
+    dependencies: monad-par
+
   fork:
     main: fork.hs
     other-modules: GetURL

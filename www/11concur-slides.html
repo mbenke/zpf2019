@@ -598,7 +598,10 @@ delay n = delay $! n-1
 <a class="sourceLine" id="cb42-13" title="13">       bs&#39; <span class="ot">&lt;-</span> get i2</a>
 <a class="sourceLine" id="cb42-14" title="14">       <span class="fu">return</span> (as&#39; <span class="op">++</span> bs&#39;)</a>
 <a class="sourceLine" id="cb42-15" title="15"></a>
-<a class="sourceLine" id="cb42-16" title="16"><span class="co">--   Productivity  96.3% of total user, 141.2% of total elapsed</span></a></code></pre></div>
+<a class="sourceLine" id="cb42-16" title="16"><span class="co">-- sudoku-par2 +RTS -s  -N1 -RTS ../Marlow/sudoku17.1000.txt</span></a>
+<a class="sourceLine" id="cb42-17" title="17"><span class="co">--  Total   time    1.528s  (  1.555s elapsed)</span></a>
+<a class="sourceLine" id="cb42-18" title="18"><span class="co">-- sudoku-par2 +RTS -s  -N2 -RTS ../Marlow/sudoku17.1000.txt</span></a>
+<a class="sourceLine" id="cb42-19" title="19"><span class="co">--  Total   time    1.600s  (  0.998s elapsed)</span></a></code></pre></div>
 </div>
 <div id="parmap" class="slide section level1">
 <h1>parMap</h1>
