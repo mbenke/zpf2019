@@ -145,6 +145,16 @@ mul :: (SNat m) -> (SNat n) -> SNat(m :* n)
 ``` {.haskell}
 vcycle :: SNat n -> Vec m a -> Vec (n:*m) a
 ```
+# Equality Proofs
+
+Prove commutativity and asociativity of addition:
+
+```
+plusComm :: SNat a -> SNat b -> a:+b :~: b:+a
+plusAssoc :: SNat a -> SNat b -> SNat c -> (a:+b):+c :~: a:+(b:+c)
+```
+
+which `SNat` arguments can be omitted?
 
 # Reverse
 
