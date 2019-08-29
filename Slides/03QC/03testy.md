@@ -552,7 +552,7 @@ Implication: test q, providing data satisfies p
 ~~~~ {.haskell}
 (==>) :: Testable a => Bool -> a -> Property
 True  ==> a = property a
-False ==> a = property () -- bad trst data
+False ==> a = property () -- bad test data
 
 propMul1 :: Int -> Property
 propMul1 x = (x>0) ==> (2*x > 0)

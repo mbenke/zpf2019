@@ -476,7 +476,7 @@ Falsifiable, after 0 tests:
 <p>Implication: test q, providing data satisfies p</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb34-1" title="1"><span class="ot">(==&gt;) ::</span> <span class="dt">Testable</span> a <span class="ot">=&gt;</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Property</span></a>
 <a class="sourceLine" id="cb34-2" title="2"><span class="dt">True</span>  <span class="op">==&gt;</span> a <span class="ot">=</span> property a</a>
-<a class="sourceLine" id="cb34-3" title="3"><span class="dt">False</span> <span class="op">==&gt;</span> a <span class="ot">=</span> property () <span class="co">-- bad trst data</span></a>
+<a class="sourceLine" id="cb34-3" title="3"><span class="dt">False</span> <span class="op">==&gt;</span> a <span class="ot">=</span> property () <span class="co">-- bad test data</span></a>
 <a class="sourceLine" id="cb34-4" title="4"></a>
 <a class="sourceLine" id="cb34-5" title="5"><span class="ot">propMul1 ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Property</span></a>
 <a class="sourceLine" id="cb34-6" title="6">propMul1 x <span class="ot">=</span> (x<span class="op">&gt;</span><span class="dv">0</span>) <span class="op">==&gt;</span> (<span class="dv">2</span><span class="op">*</span>x <span class="op">&gt;</span> <span class="dv">0</span>)</a>
